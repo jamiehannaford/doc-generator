@@ -2,54 +2,68 @@
 
 namespace OpenStack\DocGenerator;
 
+use GuzzleHttp\Command\Guzzle\Description;
 use GuzzleHttp\Command\Guzzle\Operation;
-use GuzzleHttp\Stream\StreamInterface;
+use GuzzleHttp\Stream\Stream;
 
 class Generator
 {
-    private $operation;
-    private $stream;
     private $finder;
-
-    private $serviceMapping;
+    private $destinationDir;
+    private $sourceDir;
 
     public function __construct(
-        Operation $operation,
-        StreamInterface $stream,
-        ServiceFinder $finder
+        ServiceFinder $finder = null,
+        $sourceDir = null,
+        $destinationDir = null
     ) {
-        $this->operation = $operation;
-        $this->stream = $stream;
-        $this->finder = $finder;
+        $this->destinationDir = $destinationDir ?: __DIR__ . '/doc/_build';
+        $this->sourceDir = $sourceDir ?: __DIR__ . '/src/OpenStack/';
+
+        $this->finder = $finder ?: new ServiceFinder($this->sourceDir);
     }
 
-    public function writeParameterTable()
+    public function getDestinationDir()
     {
-        $paramMap = $this->finder->findServiceParameters($this->serviceMapping);
+        return $this->destinationDir;
+    }
 
-        foreach ($paramMap as $docPath => $params) {
+    public function writeFiles()
+    {
+        $map = $this->finder->retrieveServiceParameters();
 
+        foreach ($map as $serviceVersion => $operations) {
+            $prefix = $this->getServicePath($serviceVersion);
+            $description = new Description(['operations' => $operations]);
+
+            foreach ($operations as $name => $operationArray) {
+                if (!file_exists($prefix)) {
+                    mkdir($prefix, 0755, true);
+                }
+
+                $operation = new Operation(['name' => $name] + $operationArray, $description);
+                $this->writeParamsTable($operation, $prefix);
+            }
         }
     }
 
-    public function setServiceMapping(array $map)
+    private function writeParamsTable(Operation $operation, $prefix)
     {
-        $this->serviceMapping = $map;
+        $name = $operation->getName();
+
+        $path = $prefix . $name . '.params.rst';
+        $stream = Stream::factory(fopen($path, 'w+'));
+
+        $generator = new ParameterTableGenerator($operation, $stream);
+        $generator->writeAll();
+
+        $stream->close();
     }
 
-    public function getServiceMapping()
+    private function getServicePath($serviceDir)
     {
-        if (null === $this->serviceMapping) {
-            $this->setServiceMapping($this->getDefaultServiceMapping());
-        }
-
-        return $this->serviceMapping;
-    }
-
-    private function getDefaultServiceMapping()
-    {
-        return [
-            'OpenStack\\ObjectStore\\Service' => 'object-store'
-        ];
+        return rtrim($this->destinationDir, '/') . DIRECTORY_SEPARATOR
+                . rtrim($serviceDir, '/') . DIRECTORY_SEPARATOR
+                . '_generated' . DIRECTORY_SEPARATOR;
     }
 }

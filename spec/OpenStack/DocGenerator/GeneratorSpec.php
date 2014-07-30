@@ -3,22 +3,23 @@
 namespace spec\OpenStack\DocGenerator;
 
 use GuzzleHttp\Command\Guzzle\Operation;
-use GuzzleHttp\Stream\StreamInterface;
+use GuzzleHttp\Command\Guzzle\Parameter;
 use OpenStack\DocGenerator\ServiceFinder;
+use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class GeneratorSpec extends ObjectBehavior
 {
-    private $stream;
     private $finder;
+    private $destinationDir;
 
-    function let(Operation $operation, StreamInterface $stream, ServiceFinder $finder)
+    function let(ServiceFinder $finder)
     {
-        $this->stream = $stream;
         $this->finder = $finder;
+        $this->destinationDir = '/tmp/doc/_build/';
 
-        $this->beConstructedWith($operation, $stream, $finder);
+        $this->beConstructedWith($finder, null, $this->destinationDir);
     }
 
     function it_is_initializable()
@@ -26,16 +27,32 @@ class GeneratorSpec extends ObjectBehavior
         $this->shouldHaveType('OpenStack\DocGenerator\Generator');
     }
 
-    function it_should_map_services_to_doc_directories()
+    function it_should_create_param_rst_files(Operation $operation, Parameter $param)
     {
-        $this->getServiceMapping()->shouldReturn([
-            'OpenStack\\ObjectStore\\Service' => 'object-store'
-        ]);
-    }
+        $operation->getName()->willReturn('FooOperation');
 
-    function it_should_allow_mappings_to_be_overriden()
-    {
-        $this->setServiceMapping(['Foo' => 'foo']);
-        $this->getServiceMapping()->shouldReturn(['Foo' => 'foo']);
+        $operation->getParams()->shouldBeCalled();
+        $operation->getParams()->willReturn([$param]);
+
+        $this->finder->retrieveServiceParameters()->shouldBeCalled();
+        $this->finder->retrieveServiceParameters()->willReturn([
+            'object-store-v2' => [$operation],
+            'compute-v2'      => [$operation],
+            'compute-v3'      => [$operation]
+        ]);
+
+        $this->writeFiles();
+
+        $paths = [
+            $this->destinationDir . 'object-store-v2/_generated/FooOperation.params.rst',
+            $this->destinationDir . 'compute-v2/_generated/FooOperation.params.rst',
+            $this->destinationDir . 'compute-v3/_generated/FooOperation.params.rst'
+        ];
+
+        foreach ($paths as $path) {
+            if (!file_exists($path)) {
+                throw new FailureException(sprintf("%s should exist, but does not", $path));
+            }
+        }
     }
 }

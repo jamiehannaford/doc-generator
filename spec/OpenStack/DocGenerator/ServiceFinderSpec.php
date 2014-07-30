@@ -2,6 +2,7 @@
 
 namespace spec\OpenStack\DocGenerator;
 
+use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -16,6 +17,15 @@ class ServiceFinderSpec extends ObjectBehavior
         $this->beConstructedWith($this->sourceDir, [
             'ObjectStore' => 'object-store'
         ]);
+    }
+
+    public function getMatchers()
+    {
+        return [
+            'haveKey' => function($subject, $key) {
+                    return array_key_exists($key, $subject);
+                }
+        ];
     }
 
     function it_is_initializable()
@@ -37,8 +47,9 @@ class ServiceFinderSpec extends ObjectBehavior
         ]);
     }
 
-    function it_should_read_description_files_for_params()
+    function it_should_return_array_where_keys_are_service_versions()
     {
-        
+        $this->retrieveServiceParameters()->shouldBeArray();
+        $this->retrieveServiceParameters()->shouldHaveKey('object-store-v2');
     }
 }

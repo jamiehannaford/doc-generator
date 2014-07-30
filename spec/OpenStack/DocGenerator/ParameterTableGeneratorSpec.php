@@ -2,6 +2,7 @@
 
 namespace spec\OpenStack\DocGenerator;
 
+use GuzzleHttp\Command\Guzzle\Operation;
 use GuzzleHttp\Command\Guzzle\Parameter;
 use GuzzleHttp\Stream\StreamInterface;
 use PhpSpec\ObjectBehavior;
@@ -12,12 +13,14 @@ class ParameterTableGeneratorSpec extends ObjectBehavior
     private $stream;
     private $parameter;
 
-    function let(Parameter $parameter, StreamInterface $stream)
+    function let(Operation $operation, Parameter $parameter, StreamInterface $stream)
     {
+        $operation->getParams()->willReturn([$parameter]);
+
         $this->stream = $stream;
         $this->parameter = $parameter;
 
-        $this->beConstructedWith([$parameter], $stream);
+        $this->beConstructedWith($operation, $stream);
     }
 
     public function getMatchers()
@@ -53,7 +56,7 @@ EOT;
 
     function it_should_write_directive_to_stream()
     {
-        $string = '.. csv-table::';
+        $string = ".. csv-table::\n";
 
         $this->stream->write($string)->shouldBeCalled();
 
@@ -62,7 +65,7 @@ EOT;
 
     function it_should_write_titles_to_stream()
     {
-        $string = ':header: "Name", "Type", "Required", "Description"';
+        $string = ':header: "Name", "Type", "Required", "Description"' . "\n";
 
         $this->stream->write($string)->shouldBeCalled();
 
@@ -71,7 +74,7 @@ EOT;
 
     function it_should_write_widths_to_stream()
     {
-        $string = ':widths: 20, 20, 10, 50';
+        $string = ":widths: 20, 20, 10, 50\n";
 
         $this->stream->write($string)->shouldBeCalled();
 
@@ -95,7 +98,7 @@ EOT;
         $this->parameter->getRequired()->willReturn(false);
         $this->parameter->getDescription()->willReturn('d');
 
-        $string = '"a","b","No","d"';
+        $string = '"a","b","No","d"' . "\n";
         $this->stream->write($string)->shouldBeCalled();
 
         $this->writeParameters();

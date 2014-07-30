@@ -2,6 +2,7 @@
 
 namespace OpenStack\DocGenerator;
 
+use GuzzleHttp\Command\Guzzle\Operation;
 use GuzzleHttp\Stream\StreamInterface;
 
 /**
@@ -26,13 +27,13 @@ class ParameterTableGenerator
     private $stream;
 
     /**
-     * @param \GuzzleHttp\Command\Guzzle\Parameter[] $parameters
-     * @param StreamInterface                        $stream
+     * @param Operation       $operation
+     * @param StreamInterface $stream
      */
-    public function __construct(array $parameters, StreamInterface $stream)
+    public function __construct(Operation $operation, StreamInterface $stream)
     {
-        $this->parameters = $parameters;
-        $this->stream = $stream;
+        $this->parameters = $operation->getParams();
+        $this->stream     = $stream;
     }
 
     /**
@@ -48,9 +49,9 @@ class ParameterTableGenerator
      */
     public function writeSectionHeader()
     {
-        $string = "Parameters\n~~~~~~~~~~";
+        $string = 'Parameters'  . PHP_EOL . '~~~~~~~~~~' . PHP_EOL;
 
-        $this->stream->write($string);
+        $this->output($string);
     }
 
     /**
@@ -60,7 +61,7 @@ class ParameterTableGenerator
     {
         $string = '.. csv-table::';
 
-        $this->stream->write($string);
+        $this->output($string);
     }
 
     /**
@@ -70,7 +71,7 @@ class ParameterTableGenerator
     {
         $string = ':header: "Name", "Type", "Required", "Description"';
 
-        $this->stream->write($string);
+        $this->output($string, true);
     }
 
     /**
@@ -78,9 +79,9 @@ class ParameterTableGenerator
      */
     public function writeWidths()
     {
-        $string = ':widths: 20, 20, 10, 50';
+        $string = ':widths: 20, 20, 10, 50' . PHP_EOL;
 
-        $this->stream->write($string);
+        $this->output($string, true);
     }
 
     /**
@@ -90,17 +91,39 @@ class ParameterTableGenerator
      */
     public function writeParameters()
     {
-        foreach ($this->parameters as $parameter) {
+        foreach ($this->parameters as $param) {
+
+            $type = $param->getType();
+            if (is_array($type)) {
+                $type = implode('|', $type);
+            }
+
+            if ($enum = $param->getEnum()) {
+                array_walk($enum, function(&$val) {
+                    $val = "'{$val}'";
+                });
+                $type = implode(",", $enum);
+            }
+
             $string = sprintf(
-                '"%s","%s","%s","%s"',
-                $parameter->getName(),
-                $parameter->getType(),
-                $parameter->getRequired() ? 'Yes' : 'No',
-                $parameter->getDescription()
+                '"%s", "%s", "%s", "%s"',
+                $param->getName(),
+                $type,
+                $param->getRequired() ? 'Yes' : 'No',
+                $param->getDescription()
             );
 
-            $this->stream->write($string);
+            $this->output($string, true);
         }
+    }
+
+    private function output($string, $indent = false)
+    {
+        if ($indent) {
+            $string = '  ' . $string;
+        }
+
+        $this->stream->write($string . PHP_EOL);
     }
 
     /**
