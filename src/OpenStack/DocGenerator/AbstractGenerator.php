@@ -45,7 +45,7 @@ abstract class AbstractGenerator
      */
     public function writeSectionHeader($title)
     {
-        $string = $title  . PHP_EOL . '~~~~~~~~~~' . PHP_EOL;
+        $string = $title  . PHP_EOL . str_repeat('~', strlen($title)) . PHP_EOL;
 
         $this->buffer($string);
     }

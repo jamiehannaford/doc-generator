@@ -3,7 +3,6 @@
 use Behat\Behat\Context\SnippetAcceptingContext;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
-use Behat\Behat\Tester\Exception\PendingException;
 use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use GuzzleHttp\Command\Guzzle\Operation;
 use GuzzleHttp\Command\Guzzle\Description;
@@ -11,6 +10,7 @@ use GuzzleHttp\Stream\Stream;
 use OpenStack\DocGenerator\ParameterTableGenerator;
 use OpenStack\DocGenerator\Generator;
 use OpenStack\DocGenerator\ServiceFinder;
+use OpenStack\DocGenerator\CodeSampleGenerator;
 
 class FeatureContext implements SnippetAcceptingContext
 {
@@ -166,7 +166,10 @@ class FeatureContext implements SnippetAcceptingContext
      */
     public function iGenerateSampleCode()
     {
-        throw new PendingException();
+        $this->stream = Stream::factory(fopen($this->tmpFile, 'w+'));
+
+        $generator = new CodeSampleGenerator($this->operation, $this->stream);
+        $generator->writeAll();
     }
 
     /**

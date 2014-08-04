@@ -3,6 +3,7 @@
 namespace OpenStack\DocGenerator;
 
 use GuzzleHttp\Command\Guzzle\Operation;
+use GuzzleHttp\Command\Guzzle\Parameter;
 use GuzzleHttp\Stream\StreamInterface;
 
 class CodeSampleGenerator extends AbstractGenerator
@@ -44,8 +45,8 @@ class CodeSampleGenerator extends AbstractGenerator
     {
         // Find the longest parameter name count
         $longestParamNameCount = 0;
-        foreach ($this->parameters as $name => $param) {
-            $length = strlen($name);
+        foreach ($this->parameters as $param) {
+            $length = strlen($param->getName());
             if ($length > $longestParamNameCount) {
                 $longestParamNameCount = $length;
             }
@@ -56,7 +57,9 @@ class CodeSampleGenerator extends AbstractGenerator
 
             $string  = $this->indent() . "'{$name}'";
             $string .= $this->inlineIndent($name, $longestParamNameCount);
-            $string .= "=> '{" . $param->getType() . "}',";
+            $string .= '=> ';
+            $string .= $this->printParamType($param);
+
             if ($param->getRequired() === true) {
                 $string .= ' // required';
             }
@@ -65,14 +68,29 @@ class CodeSampleGenerator extends AbstractGenerator
         }
     }
 
+    private function printParamType(Parameter $parameter)
+    {
+        $string = "'";
+
+        if ($enum = $parameter->getEnum()) {
+            $string .= implode('|', $enum);
+        } else {
+            $string .= '{' . $parameter->getType() . '}';
+        }
+
+        $string .= "',";
+
+        return $string;
+    }
+
     private function indent()
     {
-        return str_repeat(' ', Psr4CodeStyle::INDENT_SPACE_COUNT);
+        return str_repeat(' ', 2 + Psr4CodeStyle::INDENT_SPACE_COUNT);
     }
 
     private function inlineIndent($string, $maxLength)
     {
-        $count = $maxLength - strlen($string);
+        $count = $maxLength - strlen($string) + 1;
 
         return str_repeat(' ', $count > 0 ? $count : 1);
     }

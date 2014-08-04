@@ -42,12 +42,14 @@ class CodeSampleGeneratorSpec extends ObjectBehavior
     function it_should_write_variable_block_for_normal_command(
         Parameter $param1, Parameter $param2, Parameter $param3
     ) {
-        $param1->getName()->willReturn('Bar');
+        $param1->getName()->willReturn('BarBarBar');
         $param1->getType()->willReturn('string');
+        $param1->getEnum()->willReturn(null);
         $param1->getRequired()->willReturn(true);
 
         $param2->getName()->willReturn('Baz');
         $param2->getType()->willReturn('array');
+        $param2->getEnum()->willReturn(null);
         $param2->getRequired()->willReturn(false);
 
         $param3->getName()->willReturn('Foo');
@@ -67,13 +69,14 @@ Sample code
 .. code-block:: php
 
   $response = $service->fooOperation([
-      'Bar' => '{string}', // required
-      'Baz' => '{array}',
-      'Foo' => 'json|xml'
+      'BarBarBar' => '{string}', // required
+      'Baz'       => '{array}',
+      'Foo'       => 'json|xml',
   ]);
+
 EOT;
 
-        //$this->stream->write($block)->shouldBeCalled();
+        $this->stream->write($block)->shouldBeCalled();
 
         $this->writeAll();
     }
