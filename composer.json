@@ -1,5 +1,5 @@
 {
-    "title": "OpenStack SDK documentation generator",
+    "name": "php-opencloud/doc-generator",
     "autoload": {
         "psr-4": {
             "OpenStack\\DocGenerator\\": "src/OpenStack/DocGenerator/"
