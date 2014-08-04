@@ -1,0 +1,8 @@
+{
+    "title": "OpenStack SDK documentation generator",
+    "autoload": {
+        "psr-4": {
+            "OpenStack\\DocGenerator\\": "src/OpenStack/DocGenerator/"
+        }
+    }
+}
