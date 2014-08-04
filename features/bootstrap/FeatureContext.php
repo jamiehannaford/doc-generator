@@ -3,6 +3,8 @@
 use Behat\Behat\Context\SnippetAcceptingContext;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
+use Behat\Behat\Tester\Exception\PendingException;
+use Behat\Behat\Hook\Scope\AfterFeatureScope;
 use GuzzleHttp\Command\Guzzle\Operation;
 use GuzzleHttp\Command\Guzzle\Description;
 use GuzzleHttp\Stream\Stream;
@@ -13,23 +15,34 @@ use OpenStack\DocGenerator\ServiceFinder;
 class FeatureContext implements SnippetAcceptingContext
 {
     private $operation;
+    private $operationConfig;
     private $stream;
     private $tmpFile = '.foo';
 
+    private $isIteratorOperation = false;
+
     private $srcDir;
     private $desDir;
+    private static $basePath;
+
+    public function __construct()
+    {
+        self::$basePath = __DIR__ . '/.behatDocTest/';
+    }
 
     /**
      * @AfterFeature
      */
-    public static function deleteFixtures()
+    public static function deleteFixtures(AfterFeatureScope $scope)
     {
-        self::rrmdir('behatDocTest');
+        if ($scope->getFeature()->hasTag('file-clean')) {
+            self::rrmdir(self::$basePath);
+        }
     }
 
     private static function rrmdir($dir)
     {
-        foreach(glob($dir . '/*') as $file) {
+        foreach (glob($dir . '/*') as $file) {
             if (is_dir($file)) {
                 self::rrmdir($file);
             } else {
@@ -62,9 +75,9 @@ class FeatureContext implements SnippetAcceptingContext
             $params[$name] = $param;
         }
 
-        $config = ['name' => $name, 'parameters' => $params];
+        $this->operationConfig = ['name' => $name, 'parameters' => $params];
 
-        $this->operation = new Operation($config, new Description([]));
+        $this->operation = new Operation($this->operationConfig, new Description([]));
     }
 
     /**
@@ -72,7 +85,7 @@ class FeatureContext implements SnippetAcceptingContext
      */
     public function theDirectoryExists($name)
     {
-        mkdir($name, 0777, true);
+        mkdir(self::$basePath . $name, 0777, true);
     }
 
     /**
@@ -80,7 +93,34 @@ class FeatureContext implements SnippetAcceptingContext
      */
     public function theFileContains($name, PyStringNode $string)
     {
-        file_put_contents($name, (string) $string);
+        file_put_contents(self::$basePath . $name, (string) $string);
+    }
+
+    /**
+     * @Given it has these properties in its response model:
+     */
+    public function anOperationHasTheseProperties(TableNode $table)
+    {
+        $this->operationConfig['responseModel'] = $table->getColumnsHash();
+
+        $this->operation = new Operation($this->operationConfig, new Description([]));
+    }
+
+    /**
+     * @Given it has these properties for each resource:
+     */
+    public function anIteratorOperationHasTheseProperties(TableNode $table)
+    {
+        $this->operationConfig['data'] = [
+            'iterator' => [
+                'modelSchema' => [
+                    'type'       => 'object',
+                    'properties' => $table->getColumnsHash()
+                ]
+            ]
+        ];
+
+        $this->isIteratorOperation = true;
     }
 
     /**
@@ -99,7 +139,7 @@ class FeatureContext implements SnippetAcceptingContext
      */
     public function iSpecifyTheSourceDirectoryAs($path)
     {
-        $this->srcDir = $path;
+        $this->srcDir = self::$basePath . $path;
     }
 
     /**
@@ -107,7 +147,7 @@ class FeatureContext implements SnippetAcceptingContext
      */
     public function iSpecifyTheDestinationDirectoryAs($path)
     {
-        $this->desDir = $path;
+        $this->desDir = self::$basePath . $path;
     }
 
     /**
@@ -119,6 +159,14 @@ class FeatureContext implements SnippetAcceptingContext
 
         $generator = new Generator($finder, null, $this->desDir);
         $generator->writeFiles();
+    }
+
+    /**
+     * @When I generate sample code
+     */
+    public function iGenerateSampleCode()
+    {
+        throw new PendingException();
     }
 
     /**
@@ -146,8 +194,11 @@ class FeatureContext implements SnippetAcceptingContext
      */
     public function theseFilesShouldExist(TableNode $table)
     {
-        foreach ($table as $t) {
-            var_dump($t);die;
+        foreach ($table as $row) {
+            $path = $this->desDir . $row['name'];
+            if (!file_exists($path)) {
+                throw new ErrorException(sprintf("%s does not exist", $path));
+            }
         }
     }
 }

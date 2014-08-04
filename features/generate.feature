@@ -1,12 +1,13 @@
+@file-clean
 Feature: Generating RST include files
   In order for my users to have a great documentation experience
   As an SDK contributor
   I want to generate include files based off of service descriptions
 
   Background:
-    Given the ./behatDocTest/src/OpenStack/ObjectStore/Description directory exists
-    And the ./behatDocTest/src/OpenStack/Compute/Description directory exists
-    And the ./behatDocTest/src/OpenStack/ObjectStore/Description/v2.0.yml file contains:
+    Given the src/OpenStack/ObjectStore/Description directory exists
+    And the src/OpenStack/Compute/Description directory exists
+    And the src/OpenStack/ObjectStore/Description/v2.0.yml file contains:
       """
       catalogName: swift
       catalogType: object-store
@@ -62,7 +63,7 @@ Feature: Generating RST include files
               location: header
               sentAs: If-None-Match
       """
-    And the ./behatDocTest/src/OpenStack/Compute/Description/v2.0.yml file contains:
+    And the src/OpenStack/Compute/Description/v2.0.yml file contains:
       """
       catalogName: nova
       catalogType: compute
@@ -75,14 +76,14 @@ Feature: Generating RST include files
       """
 
   Scenario: Generating files
-    When I specify the source directory as ./behatDocTest/src/OpenStack/
-    And I specify the destination directory as ./behatDocTest/doc/
+    When I specify the source directory as src/OpenStack/
+    And I specify the destination directory as doc/
     And I generate files
     Then these files should exist:
       | name                                                                  |
-      | ./behatDocTest/doc/object-store-v2/_generated/PostAccount.params.rst  |
-      | ./behatDocTest/doc/object-store-v2/_generated/PostAccount.sample.rst  |
-      | ./behatDocTest/doc/object-store-v2/_generated/PutContainer.params.rst |
-      | ./behatDocTest/doc/object-store-v2/_generated/PutContainer.sample.rst |
-      | ./behatDocTest/doc/compute-v2/_generated/GetServer.params.rst         |
-      | ./behatDocTest/doc/compute-v2/_generated/GetServer.sample.rst         |
+      | object-store-v2/_generated/PostAccount.params.rst  |
+      | object-store-v2/_generated/PostAccount.sample.rst  |
+      | object-store-v2/_generated/PutContainer.params.rst |
+      | object-store-v2/_generated/PutContainer.sample.rst |
+      | compute-v2/_generated/GetServer.params.rst         |
+      | compute-v2/_generated/GetServer.sample.rst         |
