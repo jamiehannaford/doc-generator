@@ -19,7 +19,6 @@ class Generator
     ) {
         $this->destinationDir = $destinationDir ?: __DIR__ . '/doc/_build';
         $this->sourceDir = $sourceDir ?: __DIR__ . '/src/OpenStack/';
-
         $this->finder = $finder ?: new ServiceFinder($this->sourceDir);
     }
 
@@ -36,22 +35,28 @@ class Generator
             $prefix = $this->getServicePath($serviceVersion);
             $description = new Description(['operations' => $operations]);
 
-            foreach ($operations as $name => $operationArray) {
-                if (!file_exists($prefix)) {
-                    mkdir($prefix, 0755, true);
-                }
+            foreach ($operations as $name => $operationData) {
+                $this->ensureDirectoryExists($prefix);
 
-                $operation = new Operation(['name' => $name] + $operationArray, $description);
+                $operation = new Operation(['name' => $name] + $operationData, $description);
+
                 $this->writeParamsTable($operation, $prefix);
+                $this->writeCodeSample($operation, $prefix);
             }
         }
     }
 
-    private function writeParamsTable(Operation $operation, $prefix)
+    private function ensureDirectoryExists($path)
     {
-        $name = $operation->getName();
+        if (!file_exists($path)) {
+            mkdir($path, 0755, true);
+        }
+    }
 
-        $path = $prefix . $name . '.params.rst';
+    private function writeParamsTable(Operation $operation, $baseDir)
+    {
+        $name   = $operation->getName();
+        $path   = $baseDir . $name . '.params.rst';
         $stream = Stream::factory(fopen($path, 'w+'));
 
         $generator = new ParameterTableGenerator($operation, $stream);
@@ -60,10 +65,27 @@ class Generator
         $stream->close();
     }
 
+    private function writeCodeSample(Operation $operation, $baseDir)
+    {
+        $name   = $operation->getName();
+        $path   = $baseDir . $name . '.sample.rst';
+        $stream = Stream::factory(fopen($path, 'w+'));
+
+        $generator = new CodeSampleGenerator($operation, $stream);
+        $generator->writeAll();
+
+        $stream->close();
+    }
+
     private function getServicePath($serviceDir)
     {
-        return rtrim($this->destinationDir, '/') . DIRECTORY_SEPARATOR
-                . rtrim($serviceDir, '/') . DIRECTORY_SEPARATOR
-                . '_generated' . DIRECTORY_SEPARATOR;
+        return $this->appendSeparator($this->destinationDir)
+            . $this->appendSeparator($serviceDir)
+            . $this->appendSeparator('_generated');
+    }
+
+    private function appendSeparator($path)
+    {
+        return rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 }

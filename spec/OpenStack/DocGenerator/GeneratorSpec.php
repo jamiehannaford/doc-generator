@@ -2,10 +2,7 @@
 
 namespace spec\OpenStack\DocGenerator;
 
-use GuzzleHttp\Command\Guzzle\Operation;
-use GuzzleHttp\Command\Guzzle\Parameter;
 use OpenStack\DocGenerator\ServiceFinder;
-use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -27,32 +24,11 @@ class GeneratorSpec extends ObjectBehavior
         $this->shouldHaveType('OpenStack\DocGenerator\Generator');
     }
 
-    function it_should_create_param_rst_files(Operation $operation, Parameter $param)
+    function it_should_invoke_service_finder()
     {
-        $operation->getName()->willReturn('FooOperation');
-
-        $operation->getParams()->shouldBeCalled();
-        $operation->getParams()->willReturn([$param]);
-
         $this->finder->retrieveServiceParameters()->shouldBeCalled();
-        $this->finder->retrieveServiceParameters()->willReturn([
-            'object-store-v2' => [$operation],
-            'compute-v2'      => [$operation],
-            'compute-v3'      => [$operation]
-        ]);
+        $this->finder->retrieveServiceParameters()->willReturn([]);
 
         $this->writeFiles();
-
-        $paths = [
-            $this->destinationDir . 'object-store-v2/_generated/FooOperation.params.rst',
-            $this->destinationDir . 'compute-v2/_generated/FooOperation.params.rst',
-            $this->destinationDir . 'compute-v3/_generated/FooOperation.params.rst'
-        ];
-
-        foreach ($paths as $path) {
-            if (!file_exists($path)) {
-                throw new FailureException(sprintf("%s should exist, but does not", $path));
-            }
-        }
     }
 }
