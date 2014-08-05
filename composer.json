@@ -1,7 +1,11 @@
 {
     "name": "php-opencloud/doc-generator",
     "require": {
-        "php": ">=5.4.0"
+        "php": ">=5.4.0",
+        "behat/behat": "~3.0",
+        "phpspec/phpspec": "~2.0",
+        "ryakad/pandoc-php": "dev-master",
+        "php-opencloud/openstack": "dev-master"
     },
     "autoload": {
         "psr-4": {

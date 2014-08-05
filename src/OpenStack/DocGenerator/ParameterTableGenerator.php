@@ -1,6 +1,7 @@
 <?php
 
 namespace OpenStack\DocGenerator;
+use Pandoc\Pandoc;
 
 /**
  * Generates a representation of {@see \GuzzleHttp\Command\Guzzle\Parameter}s
@@ -16,21 +17,10 @@ class ParameterTableGenerator extends AbstractGenerator
     /**
      * Writes the titles of the columns
      */
-    private function writeTitles()
+    private function writeHeaders()
     {
-        $string = ':header: "Name", "Type", "Required", "Description"';
-
-        $this->buffer($string, true);
-    }
-
-    /**
-     * Writes the widths of the columns
-     */
-    private function writeWidths()
-    {
-        $string = ':widths: 20, 20, 10, 50' . PHP_EOL;
-
-        $this->buffer($string, true);
+        $this->buffer('Name|Type|Required|Description');
+        $this->buffer('---|---|---|---');
     }
 
     /**
@@ -41,6 +31,10 @@ class ParameterTableGenerator extends AbstractGenerator
     private function writeParameters()
     {
         foreach ($this->parameters as $param) {
+
+            if ($param->getStatic()) {
+                continue;
+            }
 
             $type = $param->getType();
             if (is_array($type)) {
@@ -55,14 +49,14 @@ class ParameterTableGenerator extends AbstractGenerator
             }
 
             $string = sprintf(
-                '"%s", "%s", "%s", "%s"',
+                '%s|%s|%s|%s',
                 $param->getName(),
                 $type,
                 $param->getRequired() ? 'Yes' : 'No',
                 $param->getDescription()
             );
 
-            $this->buffer($string, true);
+            $this->buffer($string);
         }
     }
 
@@ -71,11 +65,16 @@ class ParameterTableGenerator extends AbstractGenerator
      */
     public function writeAll()
     {
-        $this->writeSectionHeader('Parameters');
-        $this->writeDirective('csv-table');
-        $this->writeTitles();
-        $this->writeWidths();
+        $this->writeHeaders();
         $this->writeParameters();
+
+        $pandoc = new Pandoc();
+        $rstContent = $pandoc->convert($this->buffer, 'markdown', 'rst');
+
+        $this->buffer = '';
+
+        $this->writeSectionHeader('Parameters');
+        $this->buffer(trim($rstContent));
 
         $this->write();
     }

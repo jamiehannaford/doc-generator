@@ -5,13 +5,13 @@ Feature: Generating parameter tables
 
   Background:
     Given a listContainers operation has these parameters:
-      | name      | type   | enum | required | description |
-      | Limit     | int    |      | false    | For an integer value n, limits the number of results to n. |
-      | Marker    | string |      | false    | For a string value x, returns container names that are greater in value than the specified marker. |
-      | EndMarker | string |      | false    | For a string value x, returns container names that are less in value than the specified marker. |
-      | Format    | string | json | false    | |
-      | Prefix    | string |      | false    | Prefix value. Object names in the response begin with this value.|
-      | Delimeter | string |      | false    | Delimiter value, which returns the object names that are nested in the container.|
+      | name      | type   | static | required | description |
+      | Format    | string | json   | false    | |
+      | Limit     | int    |        | false    | For an integer value n, limits the number of results to n. |
+      | Marker    | string |        | false    | For a string value x, returns container names that are greater in value than the specified marker. |
+      | EndMarker | string |        | false    | For a string value x, returns container names that are less in value than the specified marker. |
+      | Prefix    | string |        | false    | Prefix value. Object names in the response begin with this value.|
+      | Delimeter | string |        | false    | Delimiter value, which returns the object names that are nested in the container.|
 
   Scenario: Generating CSV table
     When I generate a CSV table for listContainers
@@ -20,14 +20,17 @@ Feature: Generating parameter tables
     Parameters
     ~~~~~~~~~~
 
-    .. csv-table::
-      :header: "Name", "Type", "Required", "Description"
-      :widths: 20, 20, 10, 50
-
-      "Limit", "int", "No", "For an integer value n, limits the number of results to n."
-      "Marker", "string", "No", "For a string value x, returns container names that are greater in value than the specified marker."
-      "EndMarker", "string", "No", "For a string value x, returns container names that are less in value than the specified marker."
-      "Format", "'json'", "No", ""
-      "Prefix", "string", "No", "Prefix value. Object names in the response begin with this value."
-      "Delimeter", "string", "No", "Delimiter value, which returns the object names that are nested in the container."
++-------------+----------+------------+------------------------------------------------------------------------------------------------------+
+| Name        | Type     | Required   | Description                                                                                          |
++=============+==========+============+======================================================================================================+
+| Limit       | int      | No         | For an integer value n, limits the number of results to n.                                           |
++-------------+----------+------------+------------------------------------------------------------------------------------------------------+
+| Marker      | string   | No         | For a string value x, returns container names that are greater in value than the specified marker.   |
++-------------+----------+------------+------------------------------------------------------------------------------------------------------+
+| EndMarker   | string   | No         | For a string value x, returns container names that are less in value than the specified marker.      |
++-------------+----------+------------+------------------------------------------------------------------------------------------------------+
+| Prefix      | string   | No         | Prefix value. Object names in the response begin with this value.                                    |
++-------------+----------+------------+------------------------------------------------------------------------------------------------------+
+| Delimeter   | string   | No         | Delimiter value, which returns the object names that are nested in the container.                    |
++-------------+----------+------------+------------------------------------------------------------------------------------------------------+
     """

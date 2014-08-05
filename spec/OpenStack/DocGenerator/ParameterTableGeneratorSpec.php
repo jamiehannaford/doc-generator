@@ -35,24 +35,31 @@ class ParameterTableGeneratorSpec extends ObjectBehavior
 
     public function it_should_write_table()
     {
+        $desc = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed '
+            . 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed '
+            . 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed '
+            . 'do eiusmod tempor incididunt ut labore et dolore \\' . PHP_EOL
+            . 'magna aliqua. Ut enim ad minim';
+
+        $this->parameter->getStatic()->shouldBeCalled();
         $this->parameter->getEnum()->shouldBeCalled();
-        $this->parameter->getName()->willReturn('a');
-        $this->parameter->getType()->willReturn('b');
+        $this->parameter->getName()->willReturn('Foo');
+        $this->parameter->getType()->willReturn('string');
         $this->parameter->getRequired()->willReturn(false);
-        $this->parameter->getDescription()->willReturn('d');
+        $this->parameter->getDescription()->willReturn($desc);
 
         $block = <<<'EOT'
 Parameters
 ~~~~~~~~~~
 
-.. csv-table::
-  :header: "Name", "Type", "Required", "Description"
-  :widths: 20, 20, 10, 50
-
-  "a", "b", "No", "d"
++--------+----------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Name   | Type     | Required   | Description                                                                                                                                                                                                                                  |
++========+==========+============+==============================================================================================================================================================================================================================================+
+| Foo    | string   | No         | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore   |
+|        |          |            | magna aliqua. Ut enim ad minim                                                                                                                                                                                                               |
++--------+----------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 EOT;
-
         $this->stream->write($block)->shouldBeCalled();
 
         $this->writeAll();
