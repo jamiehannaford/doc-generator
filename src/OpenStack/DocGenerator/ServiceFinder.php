@@ -57,7 +57,7 @@ class ServiceFinder
         return $this->services;
     }
 
-    public function retrieveServiceParameters()
+    public function retrieveServiceDescriptions()
     {
         $yamlParser = new Yaml();
         $services = [];
@@ -81,10 +81,7 @@ class ServiceFinder
                     continue;
                 }
 
-                $serviceDescription = new Description($array);
-
-                // Retrieve all this service's operations
-                $services[$docPath] = $serviceDescription->getOperations();
+                $services[$docPath] = new Description($array);
             }
         }
 

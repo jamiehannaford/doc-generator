@@ -29,13 +29,12 @@ class Generator
 
     public function writeFiles()
     {
-        $map = $this->finder->retrieveServiceParameters();
+        $map = $this->finder->retrieveServiceDescriptions();
 
-        foreach ($map as $serviceVersion => $operations) {
+        foreach ($map as $serviceVersion => $description) {
             $prefix = $this->getServicePath($serviceVersion);
-            $description = new Description(['operations' => $operations]);
 
-            foreach ($operations as $name => $operationData) {
+            foreach ($description->getOperations() as $name => $operationData) {
                 $this->ensureDirectoryExists($prefix);
 
                 $operation = new Operation(['name' => $name] + $operationData, $description);

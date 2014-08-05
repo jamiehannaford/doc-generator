@@ -49,7 +49,7 @@ class ServiceFinderSpec extends ObjectBehavior
 
     function it_should_return_array_where_keys_are_service_versions()
     {
-        $this->retrieveServiceParameters()->shouldBeArray();
-        $this->retrieveServiceParameters()->shouldHaveKey('object-store-v2');
+        $this->retrieveServiceDescriptions()->shouldBeArray();
+        $this->retrieveServiceDescriptions()->shouldHaveKey('object-store-v2');
     }
 }

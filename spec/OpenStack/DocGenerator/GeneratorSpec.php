@@ -26,8 +26,8 @@ class GeneratorSpec extends ObjectBehavior
 
     function it_should_invoke_service_finder()
     {
-        $this->finder->retrieveServiceParameters()->shouldBeCalled();
-        $this->finder->retrieveServiceParameters()->willReturn([]);
+        $this->finder->retrieveServiceDescriptions()->shouldBeCalled();
+        $this->finder->retrieveServiceDescriptions()->willReturn([]);
 
         $this->writeFiles();
     }
