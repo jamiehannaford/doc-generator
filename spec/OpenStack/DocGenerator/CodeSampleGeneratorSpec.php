@@ -2,6 +2,7 @@
 
 namespace spec\OpenStack\DocGenerator;
 
+use GuzzleHttp\Command\Guzzle\Description;
 use GuzzleHttp\Command\Guzzle\Operation;
 use GuzzleHttp\Command\Guzzle\Parameter;
 use GuzzleHttp\Stream\StreamInterface;
@@ -40,7 +41,11 @@ class CodeSampleGeneratorSpec extends ObjectBehavior
     }
 
     function it_should_write_variable_block_for_normal_command(
-        Parameter $param1, Parameter $param2, Parameter $param3
+        Parameter $param1,
+        Parameter $param2,
+        Parameter $param3,
+        Description $description,
+        Parameter $model
     ) {
         $param1->getName()->willReturn('BarBarBar');
         $param1->getType()->willReturn('string');
@@ -57,9 +62,11 @@ class CodeSampleGeneratorSpec extends ObjectBehavior
         $param3->getEnum()->willReturn(['json', 'xml']);
         $param3->getRequired()->willReturn(false);
 
-        $this->operation->getResponseModel()->willReturn([
-            ['name' => 'Foo', 'type' => 'string']
-        ]);
+        $model->getProperties()->willReturn(['Foo' => $param1]);
+        $description->getModel(Argument::any())->willReturn($model);
+
+        $this->operation->getResponseModel()->shouldBeCalled();
+        $this->operation->getServiceDescription()->willReturn($description);
         $this->operation->getData('iterator')->willReturn(null);
         $this->operation->getParams()->willReturn([$param1, $param2, $param3]);
 

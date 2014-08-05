@@ -36,7 +36,7 @@ class ParameterTableGeneratorSpec extends ObjectBehavior
     public function it_should_write_table()
     {
         $desc = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed '
-            . 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed '
+            . 'Lorem ipsum dolor sit amet consectetur adipisicing elit, sed '
             . 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed '
             . 'do eiusmod tempor incididunt ut labore et dolore \\' . PHP_EOL
             . 'magna aliqua. Ut enim ad minim';
@@ -52,12 +52,16 @@ class ParameterTableGeneratorSpec extends ObjectBehavior
 Parameters
 ~~~~~~~~~~
 
-+--------+----------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Name   | Type     | Required   | Description                                                                                                                                                                                                                                  |
-+========+==========+============+==============================================================================================================================================================================================================================================+
-| Foo    | string   | No         | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore   |
-|        |          |            | magna aliqua. Ut enim ad minim                                                                                                                                                                                                               |
-+--------+----------+------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++--------+----------+------------+-----------------------------------------------------+
+| Name   | Type     | Required   | Description                                         |
++========+==========+============+=====================================================+
+| Foo    | string   | No         | Lorem ipsum dolor sit amet, consectetur             |
+|        |          |            | adipisicing elit, sed Lorem ipsum dolor sit amet    |
+|        |          |            | consectetur adipisicing elit, sed Lorem ipsum       |
+|        |          |            | dolor sit amet, consectetur adipisicing elit, sed   |
+|        |          |            | do eiusmod tempor incididunt ut labore et dolore    |
+|        |          |            | magna aliqua. Ut enim ad minim                      |
++--------+----------+------------+-----------------------------------------------------+
 
 EOT;
         $this->stream->write($block)->shouldBeCalled();

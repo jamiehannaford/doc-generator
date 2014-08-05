@@ -53,7 +53,7 @@ class ParameterTableGenerator extends AbstractGenerator
                 $param->getName(),
                 $type,
                 $param->getRequired() ? 'Yes' : 'No',
-                trim($param->getDescription())
+                wordwrap($param->getDescription(), 50, '\\'.PHP_EOL)
             );
 
             $this->buffer($string);
