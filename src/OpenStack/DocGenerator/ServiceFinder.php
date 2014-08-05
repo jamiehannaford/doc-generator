@@ -75,6 +75,12 @@ class ServiceFinder
 
                 // Parse YAML array and load into description
                 $array = $yamlParser->parse(file_get_contents($versionFile));
+
+                // Ignore empty files or those that cannot be parsed
+                if (!is_array($array)) {
+                    continue;
+                }
+
                 $serviceDescription = new Description($array);
 
                 // Retrieve all this service's operations

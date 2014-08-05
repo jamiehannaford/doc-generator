@@ -46,7 +46,6 @@ Parameters
 ~~~~~~~~~~
 
 .. csv-table::
-
   :header: "Name", "Type", "Required", "Description"
   :widths: 20, 20, 10, 50
 

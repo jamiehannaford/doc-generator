@@ -53,7 +53,7 @@ abstract class AbstractGenerator
     /**
      * Writes the Sphinx directive
      */
-    public function writeDirective($name, $suffix = false)
+    public function writeDirective($name, $suffix = false, $addedLinebreak = false)
     {
         $string = '.. ' . $name . '::';
 
@@ -61,7 +61,9 @@ abstract class AbstractGenerator
             $string .= ' ' . $suffix;
         }
 
-        $string .= PHP_EOL;
+        if ($addedLinebreak) {
+            $string .= PHP_EOL;
+        }
 
         $this->buffer($string);
     }

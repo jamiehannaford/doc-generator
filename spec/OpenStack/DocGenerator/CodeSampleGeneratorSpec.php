@@ -57,6 +57,9 @@ class CodeSampleGeneratorSpec extends ObjectBehavior
         $param3->getEnum()->willReturn(['json', 'xml']);
         $param3->getRequired()->willReturn(false);
 
+        $this->operation->getResponseModel()->willReturn([
+            ['name' => 'Foo', 'type' => 'string']
+        ]);
         $this->operation->getData('iterator')->willReturn(null);
         $this->operation->getParams()->willReturn([$param1, $param2, $param3]);
 
@@ -73,6 +76,8 @@ Sample code
       'Baz'       => '{array}',
       'Foo'       => 'json|xml',
   ]);
+
+  echo $response['Foo'];
 
 EOT;
 

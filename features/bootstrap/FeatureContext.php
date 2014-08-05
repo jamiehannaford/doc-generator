@@ -55,7 +55,7 @@ class FeatureContext implements SnippetAcceptingContext
     /**
      * @Given a :name operation has these parameters:
      */
-    public function anOperationHasTheseParameters($name, TableNode $table)
+    public function anOperationHasTheseParameters($operationName, TableNode $table)
     {
         $params = [];
         foreach ($table as $param) {
@@ -75,7 +75,7 @@ class FeatureContext implements SnippetAcceptingContext
             $params[$name] = $param;
         }
 
-        $this->operationConfig = ['name' => $name, 'parameters' => $params];
+        $this->operationConfig = ['name' => $operationName, 'parameters' => $params];
 
         $this->operation = new Operation($this->operationConfig, new Description([]));
     }
@@ -111,16 +111,21 @@ class FeatureContext implements SnippetAcceptingContext
      */
     public function anIteratorOperationHasTheseProperties(TableNode $table)
     {
-        $this->operationConfig['data'] = [
-            'iterator' => [
-                'modelSchema' => [
-                    'type'       => 'object',
-                    'properties' => $table->getColumnsHash()
-                ]
-            ]
+        $properties = [];
+        foreach ($table as $array) {
+            $name = $array['name'];
+            unset($array['name']);
+            $properties[$name] = $array;
+        }
+
+        $this->operationConfig['data']['iterator']['modelSchema'] = [
+            'type'       => 'object',
+            'properties' => $properties
         ];
 
         $this->isIteratorOperation = true;
+
+        $this->operation = new Operation($this->operationConfig, new Description([]));
     }
 
     /**

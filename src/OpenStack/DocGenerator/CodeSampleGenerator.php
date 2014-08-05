@@ -20,13 +20,19 @@ class CodeSampleGenerator extends AbstractGenerator
     public function writeAll()
     {
         $this->writeSectionHeader('Sample code');
-        $this->writeDirective('code-block', 'php');
+        $this->writeDirective('code-block', 'php', true);
 
         $isIterator = $this->operation->getData('iterator') !== null;
 
         $this->writeOpeningVariableBlock($isIterator);
         $this->writeParametersBlock();
         $this->writeClosingVariableBlock();
+
+        if ($isIterator) {
+            $this->writeForeachLoop();
+        } else {
+            $this->writeModelElements();
+        }
 
         $this->write();
     }
@@ -75,7 +81,11 @@ class CodeSampleGenerator extends AbstractGenerator
         if ($enum = $parameter->getEnum()) {
             $string .= implode('|', $enum);
         } else {
-            $string .= '{' . $parameter->getType() . '}';
+            $type = $parameter->getType();
+            if (is_array($type)) {
+                $type = implode('|', $type);
+            }
+            $string .= '{' . $type . '}';
         }
 
         $string .= "',";
@@ -83,9 +93,9 @@ class CodeSampleGenerator extends AbstractGenerator
         return $string;
     }
 
-    private function indent()
+    private function indent($offset = 2)
     {
-        return str_repeat(' ', 2 + Psr4CodeStyle::INDENT_SPACE_COUNT);
+        return str_repeat(' ', $offset + Psr4CodeStyle::INDENT_SPACE_COUNT);
     }
 
     private function inlineIndent($string, $maxLength)
@@ -98,5 +108,38 @@ class CodeSampleGenerator extends AbstractGenerator
     private function writeClosingVariableBlock()
     {
         $this->buffer(']);', true);
+    }
+
+    private function writeForeachLoop()
+    {
+        $this->buffer('');
+        $this->buffer('foreach ($iterator as $resource) {', true);
+
+        $properties = $this->operation->getData('iterator')['modelSchema']['properties'];
+
+        foreach ($properties as $name => $array) {
+            $string = $this->indent(0) . 'echo $resource[\'' . $name . '\'];';
+            $this->buffer($string, true);
+        }
+
+        $this->buffer('}', true);
+    }
+
+    private function writeModelElements()
+    {
+        $this->buffer('');
+
+        foreach ($this->operation->getResponseModel() as $array) {
+            $name = $array['name'];
+            $var  = ' $response[\'' . $name . '\'];';
+
+            if ($array['type'] == 'array') {
+                $string = '$' . lcfirst($name) . ' =' . $var . ' // Array';
+            } else {
+                $string = 'echo' . $var;
+            }
+
+            $this->buffer($string, true);
+        }
     }
 }
