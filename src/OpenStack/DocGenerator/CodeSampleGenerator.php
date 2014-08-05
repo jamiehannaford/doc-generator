@@ -129,17 +129,13 @@ class CodeSampleGenerator extends AbstractGenerator
     {
         $this->buffer('');
 
-        $responseModel = $this->operation->getResponseModel();
+        $modelName = $this->operation->getResponseModel();
+        $responseModel = $this->operation->getServiceDescription()->getModel($modelName);
 
-        if (empty($responseModel)) {
-            return;
-        }
-
-        foreach ($responseModel as $array) {
-            $name = $array['name'];
+        foreach ($responseModel->getProperties() as $name => $param) {
             $var  = ' $response[\'' . $name . '\'];';
 
-            if ($array['type'] == 'array') {
+            if ($param->getType() == 'array') {
                 $string = '$' . lcfirst($name) . ' =' . $var . ' // Array';
             } else {
                 $string = 'echo' . $var;
