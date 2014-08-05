@@ -59,7 +59,7 @@ class ParameterTableGenerator extends AbstractGenerator
                 $param->getName(),
                 $type,
                 $param->getRequired() ? 'Yes' : 'No',
-                $param->getDescription()
+                trim($param->getDescription())
             );
 
             $this->buffer($string, true);
