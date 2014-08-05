@@ -16,7 +16,7 @@ class GeneratorSpec extends ObjectBehavior
         $this->finder = $finder;
         $this->destinationDir = '/tmp/doc/_build/';
 
-        $this->beConstructedWith($finder, null, $this->destinationDir);
+        $this->beConstructedWith(null, $this->destinationDir, $finder);
     }
 
     function it_is_initializable()

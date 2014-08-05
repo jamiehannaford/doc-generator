@@ -129,7 +129,13 @@ class CodeSampleGenerator extends AbstractGenerator
     {
         $this->buffer('');
 
-        foreach ($this->operation->getResponseModel() as $array) {
+        $responseModel = $this->operation->getResponseModel();
+
+        if (empty($responseModel)) {
+            return;
+        }
+
+        foreach ($responseModel as $array) {
             $name = $array['name'];
             $var  = ' $response[\'' . $name . '\'];';
 

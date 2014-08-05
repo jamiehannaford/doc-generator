@@ -160,9 +160,7 @@ class FeatureContext implements SnippetAcceptingContext
      */
     public function iGenerateFiles()
     {
-        $finder = new ServiceFinder($this->srcDir);
-
-        $generator = new Generator($finder, null, $this->desDir);
+        $generator = new Generator($this->srcDir, $this->desDir);
         $generator->writeFiles();
     }
 

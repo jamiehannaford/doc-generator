@@ -13,12 +13,12 @@ class Generator
     private $sourceDir;
 
     public function __construct(
-        ServiceFinder $finder = null,
         $sourceDir = null,
-        $destinationDir = null
+        $destinationDir = null,
+        ServiceFinder $finder = null
     ) {
-        $this->destinationDir = $destinationDir ?: __DIR__ . '/doc/_build';
         $this->sourceDir = $sourceDir ?: __DIR__ . '/src/OpenStack/';
+        $this->destinationDir = $destinationDir ?: __DIR__ . '/doc/_build';
         $this->finder = $finder ?: new ServiceFinder($this->sourceDir);
     }
 
