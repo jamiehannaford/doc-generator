@@ -4,16 +4,12 @@ namespace OpenStack\DocGenerator\Writer;
 
 use GuzzleHttp\Stream\StreamInterface;
 use OpenStack\Common\Rest\ServiceDescription;
-use Sami\Parser\DocBlockParser;
 
-class Signature
+class Signature extends AbstractWriter
 {
     private $stream;
     private $method;
     private $description;
-    private $docBlockParser;
-
-    private $buffer;
 
     public function __construct(
         StreamInterface $stream,
@@ -23,29 +19,6 @@ class Signature
         $this->stream = $stream;
         $this->method = $method;
         $this->description = $description;
-    }
-
-    private function getDocBlockParser()
-    {
-        if (null === $this->docBlockParser) {
-            $this->docBlockParser = new DocBlockParser();
-        }
-
-        return $this->docBlockParser;
-    }
-
-    public function setDocBlockParser(DocBlockParser $parser)
-    {
-        $this->docBlockParser = $parser;
-    }
-
-    private function buffer($string, $indent = false)
-    {
-        if (is_int($indent)) {
-            $this->buffer .= str_repeat(' ', $indent);
-        }
-
-        $this->buffer .= $string . PHP_EOL;
     }
 
     public function write()
