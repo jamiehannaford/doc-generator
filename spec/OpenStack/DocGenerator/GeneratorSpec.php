@@ -31,24 +31,6 @@ class GeneratorSpec extends ObjectBehavior
         $this->buildDocs();
     }
 
-    function it_should_generate_directory_for_each_service(
-        Filesystem $filesystem, ServiceRetriever $retriever
-    ) {
-        $dir = __DIR__ . '/foo-service-v2/_generated/';
-        $filesystem->remove($dir)->shouldBeCalled();
-        $filesystem->mkdir($dir)->shouldBeCalled();
-        $filesystem->touch(Argument::type('string'))->shouldBeCalled();
-
-        $retriever->retrieve()->willReturn([
-            'foo-service-v2' => '\ArrayAccess'
-        ]);
-
-        $this->setRetriever($retriever);
-        $this->setFilesystem($filesystem);
-
-        $this->buildDocs();
-    }
-
     function it_should_generate_three_files_for_each_service_method(
         Filesystem $filesystem, ServiceRetriever $retriever
     ) {
@@ -60,14 +42,23 @@ class GeneratorSpec extends ObjectBehavior
         $filesystem->touch($dir . 'fooOperation.sample.rst')->shouldBeCalled();
         $filesystem->touch($dir . 'fooOperation.signature.rst')->shouldBeCalled();
 
-        $retriever->retrieve()->willReturn([
-            'foo-service-v2' => __NAMESPACE__ . '\\FixturesClass'
-        ]);
-
         $this->setRetriever($retriever);
         $this->setFilesystem($filesystem);
 
+        $filesystem = new Filesystem();
+        $filesystem->mkdir(__DIR__ . '/foo-service-v2/_generated', 0777);
+
+        $retriever->retrieve()->willReturn([
+            [
+                'docPath'   => 'foo-service-v2',
+                'namespace' => __NAMESPACE__ . '\\FixturesClass',
+                'descPath'  => ''
+            ]
+        ]);
+
         $this->buildDocs();
+
+        $filesystem->remove(__DIR__ . '/foo-service-v2');
     }
 }
 

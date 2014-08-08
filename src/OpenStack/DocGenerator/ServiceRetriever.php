@@ -29,11 +29,10 @@ class ServiceRetriever
             foreach ($subIterator as $version) {
                 $class = sprintf("OpenStack\\%s\\%s\\Service", $service, $version);
                 if (class_exists($class)) {
-                    $descPath = $version->getPathname() . DIRECTORY_SEPARATOR . 'Description';
                     $services[] = [
                         'docPath'   => $this->getDocPath($service, $version),
                         'namespace' => $class,
-                        'descPath'  => $descPath
+                        'descPath'  => $this->getDescPath($service, $version)
                     ];
                 }
             }
@@ -46,6 +45,11 @@ class ServiceRetriever
         }
 
         return $services;
+    }
+
+    private function getDescPath($service, $version)
+    {
+        return $service . DIRECTORY_SEPARATOR . $version . DIRECTORY_SEPARATOR . 'Description';
     }
 
     private function getDocPath($service, $version)

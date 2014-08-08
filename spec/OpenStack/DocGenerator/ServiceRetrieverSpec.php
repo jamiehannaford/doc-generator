@@ -33,17 +33,17 @@ class ServiceRetrieverSpec extends ObjectBehavior
             [
                 'docPath'   => 'compute-v2',
                 'namespace' => 'OpenStack\Compute\v2\Service',
-                'descPath'  => $this->srcDir . 'Compute/v2/Description'
+                'descPath'  => 'Compute/v2/Description'
             ],
             [
                 'docPath'   => 'compute-v3',
                 'namespace' => 'OpenStack\Compute\v3\Service',
-                'descPath'  => $this->srcDir . 'Compute/v3/Description'
+                'descPath'  => 'Compute/v3/Description'
             ],
             [
                 'docPath'   => 'object-store-v2',
                 'namespace' => 'OpenStack\ObjectStore\v2\Service',
-                'descPath'  => $this->srcDir . 'ObjectStore/v2/Description'
+                'descPath'  => 'ObjectStore/v2/Description'
             ]
         ]);
     }

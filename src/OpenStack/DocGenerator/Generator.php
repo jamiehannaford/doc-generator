@@ -2,8 +2,11 @@
 
 namespace OpenStack\DocGenerator;
 
+use GuzzleHttp\Stream\Stream;
 use OpenStack\Common\Rest\ServiceDescription;
+use OpenStack\DocGenerator\Writer\Signature;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Yaml\Parser;
 use Symfony\Component\Yaml\Yaml;
 
 class Generator
@@ -46,6 +49,10 @@ class Generator
 
     private function getYamlParser()
     {
+        if (null === $this->yamlParser) {
+            $this->yamlParser = new Parser();
+        }
+
         return $this->yamlParser;
     }
 
@@ -65,8 +72,8 @@ class Generator
         foreach ($services as $service) {
             // Wipe and create new _generated directory
             $docPath = $this->getServiceDocPath($service['docPath']);
-            $this->getFilesystem()->remove($service['docPath']);
-            $this->getFilesystem()->mkdir($service['docPath']);
+            $this->getFilesystem()->remove($docPath);
+            $this->getFilesystem()->mkdir($docPath);
 
             $description = $this->createDescription($service['descPath']);
 
@@ -82,19 +89,21 @@ class Generator
 
     private function createDescription($path)
     {
-        $serviceFile = $this->trim($path) . 'Service.yml';
+        $servicePath = $this->sourcePath . $this->trim($path);
+
+        $serviceFile = $servicePath . 'Service.yml';
         if (!file_exists($serviceFile)) {
             throw new \RuntimeException("{$serviceFile} does not exist");
         }
 
-        $yamlData = '';
+        $yamlData = [];
 
-        $paramsFile = $this->trim($path) . 'Params.yml';
+        $paramsFile = $servicePath . 'Params.yml';
         if (file_exists($paramsFile)) {
-            $yamlData .= $this->getYamlParser()->parse(file_get_contents($paramsFile));
+            $yamlData += $this->getYamlParser()->parse(file_get_contents($paramsFile));
         }
 
-        $yamlData .= $this->getYamlParser()->parse(file_get_contents($serviceFile));
+        $yamlData += $this->getYamlParser()->parse(file_get_contents($serviceFile));
 
         return new ServiceDescription($yamlData);
     }
@@ -104,7 +113,12 @@ class Generator
         $file = sprintf("%s%s.signature.rst", $this->trim($path), $method->getName());
         $this->getFilesystem()->touch($file);
 
+        $stream = Stream::factory(fopen($file, 'w+'));
 
+        $writer = new Signature($stream, $method, $description);
+        $writer->write();
+
+        $stream->close();
     }
 
     private function writeSampleFile($path, \ReflectionMethod $method)

@@ -1,0 +1,27 @@
+operations:
+  FooOperation:
+    httpMethod: GET
+    responseModel: FooOperationOutput
+    parameters:
+      Name:
+        description: The unique name for the resource.
+        location: uri
+        required: true
+        type: string
+    Prefix:
+      description: >
+        If this parameter is provided, the API will return resources whose
+        names begin with this prefix value.
+      location: query
+      sentAs: prefix
+      type: string
+models:
+  FooOperationOutput:
+    type: object
+    properties:
+      Foo:
+        type: array
+      Bar:
+        type: string
+      Baz:
+        type: string
