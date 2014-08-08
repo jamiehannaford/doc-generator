@@ -2,31 +2,14 @@
 
 namespace OpenStack\DocGenerator\Writer;
 
-use GuzzleHttp\Stream\StreamInterface;
-use OpenStack\Common\Rest\ServiceDescription;
-
 class Signature extends AbstractWriter
 {
-    private $stream;
-    private $method;
-    private $description;
-
-    public function __construct(
-        StreamInterface $stream,
-        \ReflectionMethod $method,
-        ServiceDescription $description
-    ) {
-        $this->stream = $stream;
-        $this->method = $method;
-        $this->description = $description;
-    }
-
     public function write()
     {
         $this->writeTopLine();
         $this->writeParamsExplanation();
 
-        $this->stream->write(trim($this->buffer));
+        $this->flushBuffer();
     }
 
     private function writeTopLine()
@@ -97,10 +80,7 @@ class Signature extends AbstractWriter
 
     private function writeParamsExplanation()
     {
-        /** @var \Sami\Parser\Node\DocBlockNode $docComment */
-        $docComment = $this->getDocBlockParser()->parse(
-            $this->method->getDocComment()
-        );
+        $docComment = $this->getParsedDocBlock();
 
         // Go through each tag and find the operation annotations
         foreach ($docComment->getTag('param') as $paramTag) {

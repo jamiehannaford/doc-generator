@@ -2,21 +2,37 @@
 
 namespace OpenStack\DocGenerator\Writer;
 
+use ReflectionMethod;
+use GuzzleHttp\Stream\StreamInterface;
+use OpenStack\Common\Rest\ServiceDescription;
 use Sami\Parser\DocBlockParser;
 
 abstract class AbstractWriter
 {
-    protected $stream;
+    private $stream;
     protected $buffer;
     private $docBlockParser;
 
-    private function getDocBlockParser()
+    protected $method;
+    protected $description;
+
+    public function __construct(
+        StreamInterface $stream,
+        ReflectionMethod $method,
+        ServiceDescription $description
+    ) {
+        $this->stream = $stream;
+        $this->method = $method;
+        $this->description = $description;
+    }
+
+    protected function getParsedDocBlock()
     {
         if (null === $this->docBlockParser) {
             $this->docBlockParser = new DocBlockParser();
         }
 
-        return $this->docBlockParser;
+        return $this->docBlockParser->parse($this->method->getDocComment());
     }
 
     public function setDocBlockParser(DocBlockParser $parser)
@@ -24,7 +40,7 @@ abstract class AbstractWriter
         $this->docBlockParser = $parser;
     }
 
-    private function buffer($string, $indent = false)
+    protected function buffer($string, $indent = false)
     {
         if (is_int($indent)) {
             $this->buffer .= str_repeat(' ', $indent);
@@ -32,4 +48,17 @@ abstract class AbstractWriter
 
         $this->buffer .= $string . PHP_EOL;
     }
+
+    protected function writeSectionHeader($title)
+    {
+        $this->buffer($title);
+        $this->buffer(str_repeat('~', strlen($title)));
+    }
+
+    protected function flushBuffer()
+    {
+        $this->stream->write($this->buffer);
+    }
+
+    abstract public function write();
 }

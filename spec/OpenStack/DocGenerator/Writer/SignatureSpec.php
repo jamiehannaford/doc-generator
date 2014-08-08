@@ -40,6 +40,7 @@ class SignatureSpec extends ObjectBehavior
     :param bool $bool: A bool parameter
     :param array $opts: An opts parameter
     :param StreamInterface $interface: An interface parameter
+
 EOT;
 
         $this->stream->write($string)->shouldBeCalled();
@@ -73,6 +74,7 @@ EOT;
     :param string $name: This is the Name desc
     :param int $container: This is the Container desc
     :param array $options: See Additional Parameters table
+
 EOT;
         $this->stream->write($string)->shouldBeCalled();
 
