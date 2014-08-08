@@ -5,85 +5,67 @@ Feature: Generating RST include files
   I want to generate include files based off of service descriptions
 
   Background:
-    Given the src/OpenStack/ObjectStore/Description directory exists
-    And the src/OpenStack/Compute/Description directory exists
-    And the src/OpenStack/ObjectStore/Description/v2.0.yml file contains:
+    Given a PHP file contains:
       """
-      catalogName: swift
-      catalogType: object-store
+      <?php
+
+      class Service
+      {
+          /**
+           * @param string $name
+           * @param string $date
+           * @param array  $options
+           * @operation FooOperation
+           */
+          public function fooAction($name, $date, array $options = []) {}
+
+          /**
+           * @param array $metadata
+           * @param array $options
+           * @operation BarOperation
+           */
+          public function barAction(array $metadata) {}
+      }
+      """
+    And the service description file contains:
+      """
       operations:
-        PostAccount:
-          parameters:
-            TempUrl:
-              type: string
-              location: header
-              sentAs: X-Account-Meta-Temp-URL-Key
-            TempUrl2:
-              type: string
-              location: header
-              sentAs: X-Account-Meta-Temp-URL-Key-2
-            Metadata:
-              prefix: X-Account-Meta-
-              location: header
-        PutContainer:
+        FooOperation:
           parameters:
             Name:
               type: string
-              location: uri
               required: true
-              filters: [OpenStack\ObjectStore\Description\Filters::isValidContainerName]
-            ReadAcl:
-              sentAs: X-Container-Read
+              description: This is the name param
+            Date:
+              type: integer
+              required: true
+              description: This is the date param
+            Author:
               type: string
-              location: header
-            WriteAcl:
-              sentAs: X-Container-Write
+              description: This is the author param
+            Genre:
               type: string
-              location: header
-            SyncTo:
-              sentAs: X-Container-Sync-To
-              type: string
-              location: header
-            VersionsLocation:
-              sentAs: X-Versions-Location
-              type: string
-              location: header
-            Metadata:
-              prefix: X-Container-Meta-
-              location: header
-            ContentType:
-              sentAs: Content-Type
-              location: header
-              type: string
-            DetectContentType:
-              location: header
-              type: boolean
-              sentAs: X-Detect-Content-Type
-            IfNoneMatch:
-              location: header
-              sentAs: If-None-Match
-      """
-    And the src/OpenStack/Compute/Description/v2.0.yml file contains:
-      """
-      catalogName: nova
-      catalogType: compute
-      operations:
-        GetServer:
+              static: Classical
+              description: This is the genre param
+        BarOperation:
           parameters:
-            Id:
-              location: uri
-              type: string
+            Metadata:
+              type: array
+              required: true
+              description: This is the metadata param
       """
 
-  Scenario: Generating files
-    When I specify the source directory as src/OpenStack/
-    And I specify the destination directory as doc/
-    And I generate files
-    Then these files should exist:
-      | name                                                                  |
-      | object-store-v2/_generated/PostAccount.params.rst  |
-      | object-store-v2/_generated/PostAccount.sample.rst  |
-      | object-store-v2/_generated/PutContainer.params.rst |
-      | object-store-v2/_generated/PutContainer.sample.rst |
-      | compute-v2/_generated/GetServer.params.rst         |
-      | compute-v2/_generated/GetServer.sample.rst         |
+    Scenario: Generating signature files for methods
+      When I generate doc files
+      Then fooAction.sig.rst should exist
+      And barAction.sig.rst should exist
+
+    Scenario: Generating parameter table files for methods
+      When I generate doc files
+      Then fooAction.params.rst should exist
+      And barAction.params.rst should not exist
+
+    Scenario: Generating code sample files for methods
+      When I generate doc files
+      Then fooAction.sample.rst should exist
+      And barAction.sample.rst should exist

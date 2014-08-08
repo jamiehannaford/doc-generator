@@ -2,89 +2,130 @@
 
 namespace OpenStack\DocGenerator;
 
-use GuzzleHttp\Command\Guzzle\Description;
-use GuzzleHttp\Command\Guzzle\Operation;
-use GuzzleHttp\Stream\Stream;
+use OpenStack\Common\Rest\ServiceDescription;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Yaml\Yaml;
 
 class Generator
 {
-    private $finder;
-    private $destinationDir;
-    private $sourceDir;
+    private $sourcePath;
+    private $destinationPath;
+    private $retriever;
+    private $filesystem;
+    private $yamlParser;
 
-    public function __construct(
-        $sourceDir = null,
-        $destinationDir = null,
-        ServiceFinder $finder = null
-    ) {
-        $this->sourceDir = $sourceDir ?: __DIR__ . '/src/OpenStack/';
-        $this->destinationDir = $destinationDir ?: __DIR__ . '/doc/_build';
-        $this->finder = $finder ?: new ServiceFinder($this->sourceDir);
+    public function __construct($sourcePath, $destinationPath)
+    {
+        $this->sourcePath = $sourcePath;
+        $this->destinationPath = $destinationPath;
     }
 
-    public function getDestinationDir()
+    private function getRetriever()
     {
-        return $this->destinationDir;
+        if (null === $this->retriever) {
+            $this->retriever = new ServiceRetriever($this->sourcePath);
+        }
+
+        return $this->retriever;
     }
 
-    public function writeFiles()
+    public function setRetriever(ServiceRetriever $retriever)
     {
-        $map = $this->finder->retrieveServiceDescriptions();
+        $this->retriever = $retriever;
+    }
 
-        foreach ($map as $serviceVersion => $description) {
-            $prefix = $this->getServicePath($serviceVersion);
+    private function getFilesystem()
+    {
+        return $this->filesystem;
+    }
 
-            foreach ($description->getOperations() as $name => $operationData) {
-                $this->ensureDirectoryExists($prefix);
+    public function setFilesystem(Filesystem $filesystem)
+    {
+        $this->filesystem = $filesystem;
+    }
 
-                $operation = new Operation(['name' => $name] + $operationData, $description);
+    private function getYamlParser()
+    {
+        return $this->yamlParser;
+    }
 
-                $this->writeParamsTable($operation, $prefix);
-                $this->writeCodeSample($operation, $prefix);
+    public function setYamlParser(Yaml $parser)
+    {
+        $this->yamlParser = $parser;
+    }
+
+    public function buildDocs()
+    {
+        $services = $this->getRetriever()->retrieve();
+
+        if (empty($services)) {
+            return;
+        }
+
+        foreach ($services as $service) {
+            // Wipe and create new _generated directory
+            $docPath = $this->getServiceDocPath($service['docPath']);
+            $this->getFilesystem()->remove($service['docPath']);
+            $this->getFilesystem()->mkdir($service['docPath']);
+
+            $description = $this->createDescription($service['descPath']);
+
+            $reflection = new \ReflectionClass($service['namespace']);
+            foreach ($reflection->getMethods() as $method) {
+                // Create a signature, params table + code sample file
+                $this->writeSignatureFile($docPath, $method, $description);
+                $this->writeSampleFile($docPath, $method);
+                $this->writeParamsFile($docPath, $method);
             }
         }
     }
 
-    private function ensureDirectoryExists($path)
+    private function createDescription($path)
     {
-        if (!file_exists($path)) {
-            mkdir($path, 0755, true);
+        $serviceFile = $this->trim($path) . 'Service.yml';
+        if (!file_exists($serviceFile)) {
+            throw new \RuntimeException("{$serviceFile} does not exist");
         }
+
+        $yamlData = '';
+
+        $paramsFile = $this->trim($path) . 'Params.yml';
+        if (file_exists($paramsFile)) {
+            $yamlData .= $this->getYamlParser()->parse(file_get_contents($paramsFile));
+        }
+
+        $yamlData .= $this->getYamlParser()->parse(file_get_contents($serviceFile));
+
+        return new ServiceDescription($yamlData);
     }
 
-    private function writeParamsTable(Operation $operation, $baseDir)
+    private function writeSignatureFile($path, \ReflectionMethod $method, ServiceDescription $description)
     {
-        $name   = $operation->getName();
-        $path   = $baseDir . $name . '.params.rst';
-        $stream = Stream::factory(fopen($path, 'w+'));
+        $file = sprintf("%s%s.signature.rst", $this->trim($path), $method->getName());
+        $this->getFilesystem()->touch($file);
 
-        $generator = new ParameterTableGenerator($operation, $stream);
-        $generator->writeAll();
 
-        $stream->close();
     }
 
-    private function writeCodeSample(Operation $operation, $baseDir)
+    private function writeSampleFile($path, \ReflectionMethod $method)
     {
-        $name   = $operation->getName();
-        $path   = $baseDir . $name . '.sample.rst';
-        $stream = Stream::factory(fopen($path, 'w+'));
-
-        $generator = new CodeSampleGenerator($operation, $stream);
-        $generator->writeAll();
-
-        $stream->close();
+        $file = sprintf("%s%s.sample.rst", $this->trim($path), $method->getName());
+        $this->getFilesystem()->touch($file);
     }
 
-    private function getServicePath($serviceDir)
+    private function writeParamsFile($path, \ReflectionMethod $method)
     {
-        return $this->appendSeparator($this->destinationDir)
-            . $this->appendSeparator($serviceDir)
-            . $this->appendSeparator('_generated');
+        $file = sprintf("%s%s.params.rst", $this->trim($path), $method->getName());
+        $this->getFilesystem()->touch($file);
     }
 
-    private function appendSeparator($path)
+    private function trim($string)
     {
-        return rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        return rtrim($string, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    }
+
+    private function getServiceDocPath($dir)
+    {
+        return $this->trim($this->destinationPath) . $this->trim($dir) . '_generated/';
     }
 }
