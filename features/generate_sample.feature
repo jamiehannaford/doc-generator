@@ -11,23 +11,21 @@ Feature: Generating sample code
       class Service
       {
           /**
-           * @param string $name
-           * @param string $date
-           * @param array  $options
-           * @operation FooOperation
+           * @param $name    {FooOperation::Name}
+           * @param $date    {FooOperation::Date}
+           * @param $options {FooOperation}
            */
           public function fooAction($name, $date, array $options = []) {}
 
           /**
-           * @param array $metadata
-           * @param array $options
-           * @operation BarOperation
+           * @param $metadata {BarOperation::Metadata}
+           * @param $options  {BarOperation}
            */
           public function barAction(array $metadata) {}
       }
       """
     And the service description file contains:
-    """
+      """
       operations:
         FooOperation:
           responseModel: FooOutput
@@ -75,7 +73,7 @@ Feature: Generating sample code
 
     Scenario: Generating code samples for a normal command
       When I generate code samples
-      Then fooAction.sample.rst should contain:
+      Then the output should be:
         """
         $name = '{string}';
         $date = '{string}';
@@ -91,8 +89,8 @@ Feature: Generating sample code
         """
 
     Scenario: Generating code samples for an iterator
-      When I generate code samples
-      Then barAction.sample.rst should contain:
+      When I generate code samples for this service
+      Then the output should be:
         """
         $metadata = [];
 

@@ -5,16 +5,15 @@ Feature: Generating sample code
 
   Background:
     Given a PHP file contains:
-    """
+      """
       <?php
 
       class Service
       {
           /**
-           * @param string $name
-           * @param string $date
-           * @param array  $options
-           * @operation FooOperation
+           * @param $name    {FooOperation::Name}
+           * @param $date    {FooOperation::Date}
+           * @param $options {FooOperation}
            */
           public function fooAction($name, $date, array $options = []) {}
       }
@@ -43,8 +42,8 @@ Feature: Generating sample code
       """
 
   Scenario: Generating code samples for a normal command
-    When I generate signatures
-    Then fooAction.signature.rst should contain:
+    When I generate the signatures for this service
+    Then the output should be:
       """
       .. method:: fooAction($name, $date, array $options = [])
 

@@ -3,17 +3,20 @@ Feature: Generating parameter tables
   As an SDK contributor
   I need to generate parameter tables from service definitions
 
-  Given a PHP file contains:
+  Background:
+    Given the path foo-service/v2/Service.php exists
+
+  Scenario: Generating parameter table for an operation
+    Given a PHP file contains:
     """
     <?php
 
     class Service
     {
         /**
-         * @param string $name
-         * @param string $date
-         * @param array  $options
-         * @operation FooOperation
+         * @param $name    {FooOperation::Name}
+         * @param $date    {FooOperation::Date}
+         * @param $options {FooOperation}
          */
         public function fooAction($name, $date, array $options = []) {}
     }
@@ -34,20 +37,25 @@ Feature: Generating parameter tables
           Author:
             type: string
             description: This is the author param
-          Genre:
+          Location:
             type: string
-            static: Classical
+            static: true
+            default: Tokyo
+            description: This is the author param
+          Genre:
+            type: integer
+            required: true
             description: This is the genre param
-    """
-
-  Scenario: Generating parameter tables for methods with additional params
-    When I generate a parameter tables
-    Then fooAction.params.rst should contain:
+      """
+    When I generate the parameter table for this service
+    Then it should output:
 
     """
     +----------+-----------+------------+--------------------------------------+
     | Name     | Type      | Required   | Description                          |
     +==========+===========+============+======================================+
     | Author   | string    | No         | This is the author param             |
+    +----------+-----------+------------+--------------------------------------+
+    | Genre    | integer   | Yes        | This is the genre param              |
     +----------+-----------+------------+--------------------------------------+
     """
