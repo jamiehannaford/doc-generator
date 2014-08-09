@@ -2,6 +2,8 @@
 
 namespace OpenStack\DocGenerator\Writer;
 
+use OpenStack\Common\Rest\Parameter;
+
 class Signature extends AbstractWriter
 {
     public function write()
@@ -102,11 +104,24 @@ class Signature extends AbstractWriter
                     $type = 'array';
                     $desc = 'See Additional Parameters table';
                 } elseif ($paramName = $tag->getOperationParamName()) {
-                    $operation = $this->description->getOperation($tag->getOperationName());
+                    $operationName = $tag->getOperationName();
+                    $operation = $this->description->getOperation($operationName);
                     $parameter = $operation->getParam($paramName);
+
+                    if (!($parameter instanceof Parameter)) {
+                        throw new \RuntimeException(sprintf(
+                            "%s referenced {%s::%s}, which is not defined",
+                            $this->getFullMethodName(), $operationName, $paramName
+                        ));
+                    }
+
                     $type = $parameter->getType();
                     $desc = $parameter->getDescription();
                 }
+            }
+
+            if (is_array($type)) {
+                $type = implode('|', $type);
             }
 
             $string = sprintf(':param %s $%s: %s', $type, $name, $desc);

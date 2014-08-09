@@ -112,13 +112,19 @@ class Generator
         }
 
         $yamlData = [];
-
         $paramsFile = $servicePath . 'Params.yml';
+
         if (file_exists($paramsFile)) {
-            $yamlData += $this->getYamlParser()->parse(file_get_contents($paramsFile));
+            $paramsData = $this->getYamlParser()->parse(file_get_contents($paramsFile));
+            if (is_array($paramsData)) {
+                $yamlData = $paramsData;
+            }
         }
 
-        $yamlData += $this->getYamlParser()->parse(file_get_contents($serviceFile));
+        $serviceData = $this->getYamlParser()->parse(file_get_contents($serviceFile));
+        if (is_array($serviceData)) {
+            $yamlData = array_merge($yamlData, $serviceData);
+        }
 
         return new ServiceDescription($yamlData);
     }
