@@ -13,8 +13,10 @@ class ParamTag
 
     public function __construct($line)
     {
-        if (!preg_match('#^\@param\s(?:(\w+)\s)?\$(\w+)(?:\s(.+))?$#', $line, $matches)) {
-            throw new \InvalidArgumentException('Invalid format');
+        if (!preg_match('#^\@param\s(?:(\w+)\s+)?\$(\w+)(?:\s+(.+))?$#', $line, $matches)) {
+            throw new \InvalidArgumentException(sprintf(
+                '"%s" is not a valid param tag format', $line
+            ));
         }
 
         if (isset($matches[1])) {
@@ -26,7 +28,7 @@ class ParamTag
         }
 
         if (isset($matches[3])) {
-            $this->parseDescription($matches[3]);
+            $this->parseDescription(trim($matches[3]));
         }
     }
 

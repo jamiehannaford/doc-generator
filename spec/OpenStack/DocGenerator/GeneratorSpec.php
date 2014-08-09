@@ -64,5 +64,10 @@ class GeneratorSpec extends ObjectBehavior
 
 class FixturesClass
 {
-    public function fooOperation() {}
+    /**
+     * @param string $something
+     *
+     * @return mixed
+     */
+    public function fooOperation($something) {}
 }

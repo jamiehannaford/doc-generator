@@ -80,29 +80,35 @@ class Signature extends AbstractWriter
 
     private function writeParamsExplanation()
     {
-        $docComment = $this->getParsedDocBlock();
+        $paramTags = $this->getDocBlock()->getParamTags();
+
+        if (empty($paramTags)) {
+            $class = $this->method->getDeclaringClass();
+            $className = $class->getNamespaceName()
+                ? $class->getNamespaceName() . '\\' . $class->getName()
+                : $class->getName();
+
+            throw new \RuntimeException(sprintf(
+                "%s::%s() does not have an accompanying docblock",
+                $className, $this->method->getName()
+            ));
+        }
 
         // Go through each tag and find the operation annotations
-        foreach ($docComment->getTag('param') as $paramTag) {
-            $name = $paramTag[1];
-            $type = $paramTag[0][0][0];
-            $desc = $paramTag[2];
+        foreach ($paramTags as $tag) {
+            $name = $tag->getName();
+            $type = $tag->getType();
+            $desc = $tag->getDescription();
 
-            if (preg_match('#^\{(\w+)(?:\:\:(\w+))?\}$#', $desc, $matches)) {
-                $operation = $this->description->getOperation($matches[1]);
-
-                // Because `$name {Operation::Param}` annotations are slightly
-                // different from `$name string Desc`, we need to reshuffle
-                $name = str_replace('$', '', $type);
-
-                // Handle ::ParamName
-                if (isset($matches[2])) {
-                    $operationParam = $operation->getParam($matches[2]);
-                    $type = $operationParam->getType();
-                    $desc = $operationParam->getDescription();
-                } elseif ($name == 'options') {
+            if ($tag->isOperationParam()) {
+                if ($name == 'options') {
                     $type = 'array';
                     $desc = 'See Additional Parameters table';
+                } elseif ($paramName = $tag->getOperationParamName()) {
+                    $operation = $this->description->getOperation($tag->getOperationName());
+                    $parameter = $operation->getParam($paramName);
+                    $type = $parameter->getType();
+                    $desc = $parameter->getDescription();
                 }
             }
 

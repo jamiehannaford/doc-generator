@@ -2,16 +2,16 @@
 
 namespace OpenStack\DocGenerator\Writer;
 
+use OpenStack\DocGenerator\DocBlock\DocBlock;
 use ReflectionMethod;
 use GuzzleHttp\Stream\StreamInterface;
 use OpenStack\Common\Rest\ServiceDescription;
-use Sami\Parser\DocBlockParser;
 
 abstract class AbstractWriter
 {
     private $stream;
     protected $buffer;
-    private $docBlockParser;
+    private $docBlock;
 
     protected $method;
     protected $description;
@@ -26,18 +26,18 @@ abstract class AbstractWriter
         $this->description = $description;
     }
 
-    protected function getParsedDocBlock()
+    protected function getDocBlock()
     {
-        if (null === $this->docBlockParser) {
-            $this->docBlockParser = new DocBlockParser();
+        if (null === $this->docBlock) {
+            $this->docBlock = new DocBlock($this->method->getDocComment());
         }
 
-        return $this->docBlockParser->parse($this->method->getDocComment());
+        return $this->docBlock;
     }
 
-    public function setDocBlockParser(DocBlockParser $parser)
+    public function setDocBlock(DocBlock $docBlock)
     {
-        $this->docBlockParser = $parser;
+        $this->docBlock = $docBlock;
     }
 
     protected function buffer($string, $indent = false, $endOfLine = true)

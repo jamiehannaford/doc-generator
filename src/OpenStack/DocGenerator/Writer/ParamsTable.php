@@ -2,6 +2,7 @@
 
 namespace OpenStack\DocGenerator\Writer;
 
+use OpenStack\Common\Rest\Operation;
 use Pandoc\Pandoc;
 
 class ParamsTable extends AbstractWriter
@@ -10,7 +11,6 @@ class ParamsTable extends AbstractWriter
     {
         $this->writeSectionHeader('Additional Parameters');
         $this->writeTitles();
-
         $this->writeParamTable();
 
         $this->flushBuffer();
@@ -35,17 +35,15 @@ class ParamsTable extends AbstractWriter
             return;
         }
 
-        // @TODO create bespoke DocBlock class or something
-        $docBlock = $this->getParsedDocBlock();
-        foreach ($docBlock->getTag('param') as $param) {
-            if ($param[0][0][0] == '$options') {
-                $operationName = str_replace(['{', '}'], '', $param[2]);
-            }
+        $docBlock = $this->getDocBlock();
+
+        if ($operationParamTag = $docBlock->getParamTag('options')) {
+            $operation = $this->description->getOperation(
+                $operationParamTag->getOperationName()
+            );
         }
 
-        if (!isset($operationName)
-            || !($operation = $this->description->getOperation($operationName))
-        ) {
+        if (!isset($operation) || !($operation instanceof Operation)) {
             return;
         }
 

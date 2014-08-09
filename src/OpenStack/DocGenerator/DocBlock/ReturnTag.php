@@ -7,13 +7,15 @@ class ReturnTag
     private $type;
     private $operation;
 
-    public function __construct($string)
+    public function __construct($line)
     {
-        if (!preg_match('#^\@return#', $string)) {
-            throw new \InvalidArgumentException('Invalid format');
+        if (!preg_match('#^\@return#', $line)) {
+            throw new \InvalidArgumentException(sprintf(
+                '"%s" is not a valid return tag format', $line
+            ));
         }
 
-        $string = str_replace('@return ', '', $string);
+        $string = str_replace('@return ', '', $line);
 
         if (preg_match('#^\{(\w+)\}$#', $string, $matches)) {
             $this->operation = $matches[1];
