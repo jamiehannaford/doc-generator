@@ -40,7 +40,9 @@ class SignatureSpec extends ObjectBehavior
     :param bool $bool: A bool parameter
     :param array $opts: An opts parameter
     :param StreamInterface $interface: An interface parameter
-
+    :return: Something
+    :rtype: string
+    :raises CommandException: If a HTTP or network connection error occurs
 EOT;
 
         $this->stream->write($string)->shouldBeCalled();
@@ -61,6 +63,7 @@ EOT;
         $param2->getDescription()->willReturn('This is the Container desc');
         $operation->getParam('Container')->willReturn($param2);
 
+        $operation->getIteratorName()->willReturn(false);
         $this->description->getOperation('BarOperation')->shouldBeCalled();
         $this->description->getOperation('BarOperation')->willReturn($operation);
 
@@ -74,7 +77,34 @@ EOT;
     :param string $name: This is the Name desc
     :param int $container: This is the Container desc
     :param array $options: See Additional Parameters table
+    :return: an array-like model object (like a read-only struct) that implements \ArrayAccess
+    :rtype: OpenStack\Common\Model\ModelInterface
+    :raises CommandException: If a HTTP or network connection error occurs
+EOT;
+        $this->stream->write($string)->shouldBeCalled();
 
+        $this->write();
+    }
+
+    function it_returns_an_iterator_type_for_iterator_operations(
+        Operation $operation
+    ) {
+        $operation->getIteratorName()->willReturn('BlahIterator');
+
+        $this->description->getOperation('IteratorOperation')->shouldBeCalled();
+        $this->description->getOperation('IteratorOperation')->willReturn($operation);
+
+        $class  = new \ReflectionClass(__NAMESPACE__ . '\\FixturesClass');
+        $method = $class->getMethod('iteratorOperation');
+        $this->beConstructedWith($this->stream, $method, $this->description);
+
+        $string = <<<'EOT'
+.. method:: iteratorOperation(array $options = [])
+
+    :param array $options: See Additional Parameters table
+    :return: a resource iterator
+    :rtype: OpenStack\Common\Iterator\ResourceIterator
+    :raises CommandException: If a HTTP or network connection error occurs
 EOT;
         $this->stream->write($string)->shouldBeCalled();
 
@@ -89,6 +119,8 @@ class FixturesClass
      * @param bool            $bool      A bool parameter
      * @param array           $opts      An opts parameter
      * @param StreamInterface $interface An interface parameter
+     *
+     * @return string Something
      */
     public function fooOperation($string, $bool = false, array $opts = [], StreamInterface $interface)
     {}
@@ -97,7 +129,17 @@ class FixturesClass
      * @param $name      {BarOperation::Name}
      * @param $container {BarOperation::Container}
      * @param $options   {BarOperation}
+     *
+     * @return {BarOperation}
      */
     public function barOperation($name, $container, array $options = [])
+    {}
+
+    /**
+     * @param $options {IteratorOperation}
+     *
+     * @return {IteratorOperation}
+     */
+    public function iteratorOperation(array $options = [])
     {}
 }

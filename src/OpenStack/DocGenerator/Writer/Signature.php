@@ -8,6 +8,8 @@ class Signature extends AbstractWriter
     {
         $this->writeTopLine();
         $this->writeParamsExplanation();
+        $this->writeReturnType();
+        $this->writeRaisesExceptions();
 
         $this->flushBuffer();
     }
@@ -83,14 +85,9 @@ class Signature extends AbstractWriter
         $paramTags = $this->getDocBlock()->getParamTags();
 
         if (empty($paramTags)) {
-            $class = $this->method->getDeclaringClass();
-            $className = $class->getNamespaceName()
-                ? $class->getNamespaceName() . '\\' . $class->getName()
-                : $class->getName();
-
             throw new \RuntimeException(sprintf(
-                "%s::%s() does not have an accompanying docblock",
-                $className, $this->method->getName()
+                "%s does not have an accompanying docblock",
+                $this->getFullMethodName()
             ));
         }
 
@@ -115,5 +112,42 @@ class Signature extends AbstractWriter
             $string = sprintf(':param %s $%s: %s', $type, $name, $desc);
             $this->buffer($string, 4);
         }
+    }
+
+    private function writeReturnType()
+    {
+        if (!($returnTag = $this->getDocBlock()->getReturnTag())) {
+            throw new \InvalidArgumentException(sprintf(
+                'No @return tag for %s', $this->getFullMethodName()
+            ));
+        }
+
+        $type = $returnTag->getType();
+        $desc = $returnTag->getDescription();
+
+        if ($operationName = $returnTag->getOperation()) {
+            if (!($operation = $this->description->getOperation($operationName))) {
+                throw new \InvalidArgumentException(sprintf(
+                    '%s is not a valid operation', $operationName
+                ));
+            }
+
+            if ($operation->getIteratorName()) {
+                $type = 'OpenStack\\Common\\Iterator\\ResourceIterator';
+                $desc = 'a resource iterator';
+            } else {
+                $type = 'OpenStack\\Common\\Model\\ModelInterface';
+                $desc = 'an array-like model object (like a read-only struct) that implements \ArrayAccess';
+            }
+        }
+
+        $this->buffer(':return: ' . $desc, 4);
+        $this->buffer(':rtype: ' . $type, 4);
+    }
+
+    private function writeRaisesExceptions()
+    {
+        $string = ':raises CommandException: If a HTTP or network connection error occurs';
+        $this->buffer($string, 4, false);
     }
 }

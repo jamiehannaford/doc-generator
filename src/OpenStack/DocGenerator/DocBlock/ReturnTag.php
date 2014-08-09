@@ -6,6 +6,7 @@ class ReturnTag
 {
     private $type;
     private $operation;
+    private $description;
 
     public function __construct($line)
     {
@@ -19,8 +20,11 @@ class ReturnTag
 
         if (preg_match('#^\{(\w+)\}$#', $string, $matches)) {
             $this->operation = $matches[1];
-        } else {
-            $this->type = $string;
+        } elseif (preg_match('#(\w+)\s+(\w+)#', $string, $matches)) {
+            $this->type = $matches[1];
+            if ($matches[2]) {
+                $this->description = $matches[2];
+            }
         }
     }
 
@@ -32,5 +36,10 @@ class ReturnTag
     public function getOperation()
     {
         return $this->operation;
+    }
+
+    public function getDescription()
+    {
+        return $this->description;
     }
 }

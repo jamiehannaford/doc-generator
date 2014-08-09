@@ -24,8 +24,9 @@ class ReturnTagSpec extends ObjectBehavior
 
     function it_handles_normal_return_types()
     {
-        $this->beConstructedWith('@return string');
+        $this->beConstructedWith('@return string Description');
         $this->getType()->shouldReturn('string');
+        $this->getDescription()->shouldReturn('Description');
         $this->getOperation()->shouldReturn(null);
     }
 

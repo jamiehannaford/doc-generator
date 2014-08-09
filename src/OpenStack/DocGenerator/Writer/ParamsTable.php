@@ -25,19 +25,7 @@ class ParamsTable extends AbstractWriter
     {
         $content = $this->writeTitles();
 
-        foreach ($this->method->getParameters() as $param) {
-            if ($param->getName() == 'options') {
-                $proceed = true;
-            }
-        }
-
-        if (!isset($proceed)) {
-            return;
-        }
-
-        $docBlock = $this->getDocBlock();
-
-        if ($operationParamTag = $docBlock->getParamTag('options')) {
+        if ($operationParamTag = $this->getDocBlock()->getParamTag('options')) {
             $operation = $this->description->getOperation(
                 $operationParamTag->getOperationName()
             );
@@ -52,7 +40,6 @@ class ParamsTable extends AbstractWriter
                 continue;
             }
 
-            $name = $param->getName();
             $type = $param->getType();
 
             if (is_array($type)) {
@@ -68,7 +55,7 @@ class ParamsTable extends AbstractWriter
 
             $content .= sprintf(
                 '%s|%s|%s|%s',
-                $name,
+                $param->getName(),
                 $type,
                 $param->getRequired() ? 'Yes' : 'No',
                 wordwrap($param->getDescription(), 50, '\\'.PHP_EOL)

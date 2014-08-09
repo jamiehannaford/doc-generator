@@ -35,7 +35,7 @@ class DocBlock
             if (preg_match('#^\@param#', $line)) {
                 $paramTag = new ParamTag($line);
                 $this->params[$paramTag->getName()] = $paramTag;
-            } elseif (preg_match('#^\@return\s\{(\w+)\}$#', $line)) {
+            } elseif (preg_match('#^\@return#', $line)) {
                 $this->returnTag = new ReturnTag($line);
             }
         }

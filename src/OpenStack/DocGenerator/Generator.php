@@ -79,10 +79,16 @@ class Generator
 
             $reflection = new \ReflectionClass($service['namespace']);
             foreach ($reflection->getMethods() as $method) {
-                // Create a signature, params table + code sample file
+                // Create a signature
                 $this->writeSignatureFile($docPath, $method, $description);
+
+                // Create code sample
                 $this->writeSampleFile($docPath, $method);
-                $this->writeParamsFile($docPath, $method);
+
+                // Create additional params table if necessary
+                if ($this->methodRequiresParamsFile($method)) {
+                    $this->writeParamsFile($docPath, $method);
+                }
             }
         }
     }
@@ -131,6 +137,19 @@ class Generator
     {
         $file = sprintf("%s%s.params.rst", $this->trim($path), $method->getName());
         $this->getFilesystem()->touch($file);
+    }
+
+    private function methodRequiresParamsFile(\ReflectionMethod $method)
+    {
+        $proceed = false;
+
+        foreach ($method->getParameters() as $param) {
+            if ($param->getName() == 'options') {
+                $proceed = true;
+            }
+        }
+
+        return $proceed;
     }
 
     private function trim($string)

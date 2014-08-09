@@ -65,5 +65,15 @@ abstract class AbstractWriter
         $this->stream->write($this->buffer);
     }
 
+    protected function getFullMethodName()
+    {
+        $class = $this->method->getDeclaringClass();
+        $className = $class->getNamespaceName()
+            ? $class->getNamespaceName() . '\\' . $class->getName()
+            : $class->getName();
+
+        return sprintf("%s::%s()", $className, $this->method->getName());
+    }
+
     abstract public function write();
 }
