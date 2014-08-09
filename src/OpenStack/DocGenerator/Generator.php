@@ -39,6 +39,10 @@ class Generator
 
     private function getFilesystem()
     {
+        if (null === $this->filesystem) {
+            $this->filesystem = new Filesystem();
+        }
+
         return $this->filesystem;
     }
 
