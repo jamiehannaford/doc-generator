@@ -40,19 +40,24 @@ abstract class AbstractWriter
         $this->docBlockParser = $parser;
     }
 
-    protected function buffer($string, $indent = false)
+    protected function buffer($string, $indent = false, $endOfLine = true)
     {
         if (is_int($indent)) {
             $this->buffer .= str_repeat(' ', $indent);
         }
 
-        $this->buffer .= $string . PHP_EOL;
+        $this->buffer .= $string;
+
+        if ($endOfLine === true) {
+            $this->buffer .= PHP_EOL;
+        }
     }
 
     protected function writeSectionHeader($title)
     {
         $this->buffer($title);
         $this->buffer(str_repeat('~', strlen($title)));
+        $this->buffer('');
     }
 
     protected function flushBuffer()

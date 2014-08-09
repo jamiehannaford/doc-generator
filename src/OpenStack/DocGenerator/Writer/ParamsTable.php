@@ -10,24 +10,28 @@ class ParamsTable extends AbstractWriter
     {
         $this->writeSectionHeader('Additional Parameters');
         $this->writeTitles();
+
         $this->writeParamTable();
-var_dump($this->buffer);die;
+
         $this->flushBuffer();
     }
 
     private function writeTitles()
     {
-        $this->buffer('Name|Type|Required|Description');
+        return 'Name|Type|Required|Description' . PHP_EOL . '---|---|---|---' . PHP_EOL;
     }
 
     private function writeParamTable()
     {
-        $methodParams = [];
+        $content = $this->writeTitles();
+
         foreach ($this->method->getParameters() as $param) {
-            $methodParams[$param->getName()] = true;
+            if ($param->getName() == 'options') {
+                $proceed = true;
+            }
         }
 
-        if (!isset($methodParams['options'])) {
+        if (!isset($proceed)) {
             return;
         }
 
@@ -45,15 +49,12 @@ var_dump($this->buffer);die;
             return;
         }
 
-        $rowData = '';
-
         foreach ($operation->getParams() as $param) {
-            $name = $param->getName();
-
-            if (!isset($methodParams[$name]) || $param->getStatic()) {
+            if ($param->getStatic()) {
                 continue;
             }
 
+            $name = $param->getName();
             $type = $param->getType();
 
             if (is_array($type)) {
@@ -67,17 +68,17 @@ var_dump($this->buffer);die;
                 $type = implode(",", $enum);
             }
 
-            $rowData .= sprintf(
+            $content .= sprintf(
                 '%s|%s|%s|%s',
                 $name,
                 $type,
                 $param->getRequired() ? 'Yes' : 'No',
                 wordwrap($param->getDescription(), 50, '\\'.PHP_EOL)
-            );
+            ) . PHP_EOL;
         }
 
-        $content = (new Pandoc())->convert($rowData, 'markdown', 'rst');
+        $rstContent = (new Pandoc())->convert($content, 'markdown', 'rst');
 
-        $this->buffer($content);
+        $this->buffer(trim($rstContent), false, false);
     }
 }

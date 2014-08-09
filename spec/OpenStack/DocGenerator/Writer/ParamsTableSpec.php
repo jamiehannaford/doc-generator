@@ -40,14 +40,23 @@ class ParamsTableSpec extends ObjectBehavior
         $param1->getName()->willReturn('Foo');
         $param1->getType()->willReturn('string');
         $param1->getDescription()->willReturn('This is a desc of Foo');
+        $param1->getStatic()->willReturn(false);
+        $param1->getEnum()->willReturn(false);
+        $param1->getRequired()->willReturn(false);
 
         $param2->getName()->willReturn('Bar');
         $param2->getType()->willReturn('string');
         $param2->getDescription()->willReturn('This is a desc of Bar');
+        $param2->getStatic()->willReturn(false);
+        $param2->getEnum()->willReturn(false);
+        $param2->getRequired()->willReturn(false);
 
         $param3->getName()->willReturn('Baz');
         $param3->getType()->willReturn('string');
         $param3->getDescription()->willReturn('This is a desc of Baz');
+        $param3->getStatic()->willReturn(true);
+        $param3->getEnum()->willReturn(false);
+        $param3->getRequired()->willReturn(false);
 
         $operation->getParams()->willReturn([$param1, $param2, $param3]);
         $this->description->getOperation('BarOperation')->willReturn($operation);
@@ -56,7 +65,13 @@ class ParamsTableSpec extends ObjectBehavior
 Additional Parameters
 ~~~~~~~~~~~~~~~~~~~~~
 
-
++--------+----------+------------+-------------------------+
+| Name   | Type     | Required   | Description             |
++========+==========+============+=========================+
+| Foo    | string   | No         | This is a desc of Foo   |
++--------+----------+------------+-------------------------+
+| Bar    | string   | No         | This is a desc of Bar   |
++--------+----------+------------+-------------------------+
 EOT;
 
         $this->stream->write($string)->shouldBeCalled();
