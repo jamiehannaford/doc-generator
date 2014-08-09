@@ -74,6 +74,10 @@ class GeneratorSpec extends ObjectBehavior
         $filesystem->remove($dir)->shouldBeCalled();
         $filesystem->mkdir($dir)->shouldBeCalled();
 
+        $filesystem->touch($dir . 'abstractOperation.sample.rst')->shouldNotBeCalled();
+        $filesystem->touch($dir . 'abstractOperation.params.rst')->shouldNotBeCalled();
+        $filesystem->touch($dir . 'abstractOperation.signature.rst')->shouldNotBeCalled();
+
         $filesystem->touch($dir . 'barOperation.sample.rst')->shouldBeCalled();
         $filesystem->touch($dir . 'barOperation.params.rst')->shouldNotBeCalled();
         $filesystem->touch($dir . 'barOperation.signature.rst')->shouldBeCalled();
@@ -103,10 +107,21 @@ class FixturesClass
     public function fooOperation(array $options = []) {}
 }
 
-class OtherFixturesClass
+abstract class AbstractClass
+{
+    /**
+     * @return void
+     */
+    public function abstractOperation()
+    {}
+}
+
+class OtherFixturesClass extends AbstractClass
 {
     /**
      * @param string $name
+     *
+     * @return string
      */
     public function barOperation($name) {}
 }

@@ -79,6 +79,11 @@ class Generator
 
             $reflection = new \ReflectionClass($service['namespace']);
             foreach ($reflection->getMethods() as $method) {
+                // Ignore methods from abstract classes and non-public ones
+                if ($method->getDeclaringClass()->isAbstract() || !$method->isPublic()) {
+                    continue;
+                }
+
                 // Create a signature
                 $this->writeSignatureFile($docPath, $method, $description);
 
