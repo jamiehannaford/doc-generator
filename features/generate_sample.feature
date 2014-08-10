@@ -24,7 +24,7 @@ Feature: Generating sample code
           public function barAction(array $metadata) {}
       }
       """
-    And the service description file contains:
+    And the service description contains:
       """
       operations:
         FooOperation:
@@ -72,7 +72,7 @@ Feature: Generating sample code
       """
 
     Scenario: Generating code samples for a normal command
-      When I generate code samples
+      When I generate code samples for this service
       Then the output should be:
         """
         $name = '{string}';

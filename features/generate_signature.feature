@@ -18,7 +18,7 @@ Feature: Generating sample code
           public function fooAction($name, $date, array $options = []) {}
       }
       """
-    And the service description file contains:
+    And the service description contains:
       """
       operations:
         FooOperation:

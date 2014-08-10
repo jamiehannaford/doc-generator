@@ -3,9 +3,6 @@ Feature: Generating parameter tables
   As an SDK contributor
   I need to generate parameter tables from service definitions
 
-  Background:
-    Given the path foo-service/v2/Service.php exists
-
   Scenario: Generating parameter table for an operation
     Given a PHP file contains:
     """
@@ -21,7 +18,7 @@ Feature: Generating parameter tables
         public function fooAction($name, $date, array $options = []) {}
     }
     """
-  And the service description file contains:
+  And the service description contains:
     """
     operations:
       FooOperation:
@@ -48,7 +45,7 @@ Feature: Generating parameter tables
             description: This is the genre param
       """
     When I generate the parameter table for this service
-    Then it should output:
+    Then the output should be:
 
     """
     +----------+-----------+------------+--------------------------------------+
@@ -59,3 +56,46 @@ Feature: Generating parameter tables
     | Genre    | integer   | Yes        | This is the genre param              |
     +----------+-----------+------------+--------------------------------------+
     """
+
+  Scenario: Generating no parameter table for operations that have no additional params
+    Given a PHP file contains:
+    """
+    <?php
+
+    class Service
+    {
+        /**
+         * @param $name    {FooOperation::Name}
+         * @param $date    {FooOperation::Date}
+         */
+        public function fooAction($name, $date, array $options = []) {}
+    }
+    """
+    And the service description contains:
+      """
+      operations:
+      FooOperation:
+        parameters:
+          Name:
+            type: string
+            required: true
+            description: This is the name param
+          Date:
+            type: integer
+            required: true
+            description: This is the date param
+          Author:
+            type: string
+            description: This is the author param
+          Location:
+            type: string
+            static: true
+            default: Tokyo
+            description: This is the author param
+          Genre:
+            type: integer
+            required: true
+            description: This is the genre param
+      """
+    When I generate the parameter table for this service
+    Then the output should be nothing

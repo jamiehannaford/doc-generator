@@ -5,7 +5,7 @@ Feature: Generating RST include files
   I want to generate include files based off of service descriptions
 
   Background:
-    Given the path foo-service/v2/Service.php exists
+    Given the Service.php file exists inside the FooService/v2 directory
 
   Scenario: Generating docs for a conventional method with no REST association
     Given the PHP file contains:
@@ -21,7 +21,7 @@ Feature: Generating RST include files
           public function fooAction($name, array $options = []) {}
       }
       """
-    When I generate doc files for this service
+    When I generate documentation for this service
     Then these doc files should exist:
       | filename                |
       | fooAction.signature.rst |
@@ -55,7 +55,7 @@ Feature: Generating RST include files
               required: true
               description: This is the date param
       """
-    When I generate doc files for this service
+    When I generate documentation for this service
     Then these doc files should exist:
       | filename                |
       | fooAction.params.rst    |
@@ -90,7 +90,7 @@ Feature: Generating RST include files
                 required: true
                 description: This is the date param
         """
-      When I generate doc files for this service
+      When I generate documentation for this service
       Then these doc files should exist:
         | filename                |
         | fooAction.params.rst    |
