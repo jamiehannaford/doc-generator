@@ -25,18 +25,27 @@ class ParamsTable extends AbstractWriter
     {
         $content = $this->writeTitles();
 
-        if ($operationParamTag = $this->getDocBlock()->getParamTag('options')) {
-            $operation = $this->description->getOperation(
-                $operationParamTag->getOperationName()
-            );
+        $operationName = $this->getDocBlock()
+            ->getParamTag('options')
+            ->getOperationName();
+
+        if ($operationName) {
+            $operation = $this->description->getOperation($operationName);
         }
 
         if (!isset($operation) || !($operation instanceof Operation)) {
             return;
         }
 
+        $methodParams = [];
+        foreach ($this->method->getParameters() as $methodParam) {
+            $methodParams[strtolower($methodParam->getName())] = true;
+        }
+
         foreach ($operation->getParams() as $param) {
-            if ($param->getStatic()) {
+            $name = $param->getName();
+
+            if ($param->getStatic() || isset($methodParams[strtolower($name)])) {
                 continue;
             }
 
@@ -55,7 +64,7 @@ class ParamsTable extends AbstractWriter
 
             $content .= sprintf(
                 '%s|%s|%s|%s',
-                $param->getName(),
+                $name,
                 $type,
                 $param->getRequired() ? 'Yes' : 'No',
                 wordwrap($param->getDescription(), 50, '\\'.PHP_EOL)

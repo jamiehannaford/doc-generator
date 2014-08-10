@@ -28,8 +28,8 @@ class WriterFactory
         $this->validate($namespace, $docPath, $descPath);
 
         $this->namespace = $namespace;
-        $this->docPath = $this->trim($docPath);
-        $this->descPath = $this->trim($descPath);
+        $this->docPath   = $this->trim($docPath);
+        $this->descPath  = $this->trim($descPath);
 
         $this->yamlParser = $parser ?: new Parser();
         $this->filesystem = $filesystem ?: new Filesystem();
@@ -74,10 +74,7 @@ class WriterFactory
     public function create($writerType, $file, \ReflectionMethod $method)
     {
         $className = sprintf('%s\\%s', __NAMESPACE__, ucfirst($writerType));
-
-        if (!class_exists($className)) {
-            throw new \InvalidArgumentException("$className does not exist");
-        }
+        $this->validateNamespace($className);
 
         return new $className(
             $this->createStream($file),

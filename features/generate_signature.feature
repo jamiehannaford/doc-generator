@@ -4,9 +4,11 @@ Feature: Generating sample code
   I need to generate method signatures
 
   Background:
-    Given a PHP file contains:
+    Given the service is named FooService
+    And a PHP file contains:
       """
       <?php
+      namespace OpenStack\FooService\v2;
 
       class Service
       {
@@ -14,6 +16,8 @@ Feature: Generating sample code
            * @param $name    {FooOperation::Name}
            * @param $date    {FooOperation::Date}
            * @param $options {FooOperation}
+           *
+           * @return {FooOperation}
            */
           public function fooAction($name, $date, array $options = []) {}
       }
@@ -43,13 +47,14 @@ Feature: Generating sample code
 
   Scenario: Generating code samples for a normal command
     When I generate the signatures for this service
-    Then the output should be:
+    Then fooAction.signature.rst should contain:
       """
       .. method:: fooAction($name, $date, array $options = [])
 
-          :param   string $name: This is the name param
-          :param   string $date: This is the date param
-          :param   array $options: See Additional Parameters
-          :return: an array-like resource model
-          :rtype:  OpenStack\\Common\\Model\\ModelInterface
+          :param string $name: This is the name param
+          :param integer $date: This is the date param
+          :param array $options: See Additional Parameters table
+          :return: an array-like model object (like a read-only struct) that implements \ArrayAccess
+          :rtype: OpenStack\Common\Model\ModelInterface
+          :raises CommandException: If a HTTP or network connection error occurs
       """

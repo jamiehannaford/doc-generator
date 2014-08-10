@@ -11,19 +11,18 @@ class ServiceGenerator
 
     private $namespace;
     private $docPath;
-    private $serviceMethods;
     private $filesystem;
     private $writerFactory;
+    private $serviceMethods;
 
     public function __construct($namespace, $docPath, $descPath)
     {
-        // Make sure namespace and paths exist
         $this->validate($namespace, $docPath, $descPath);
+
         $this->namespace = $namespace;
         $this->docPath   = $this->trim($docPath);
 
-        // Set collaborators
-        $this->filesystem = new Filesystem();
+        $this->filesystem    = new Filesystem();
         $this->writerFactory = new WriterFactory($namespace, $docPath, $descPath);
     }
 
@@ -47,7 +46,6 @@ class ServiceGenerator
         if (null === $this->serviceMethods) {
             $reflection = new \ReflectionClass($this->namespace);
             foreach ($reflection->getMethods() as $method) {
-                // Ignore methods from abstract classes and non-public ones
                 if ($method->getDeclaringClass()->isAbstract() || !$method->isPublic()) {
                     continue;
                 }
@@ -59,45 +57,61 @@ class ServiceGenerator
         return $this->serviceMethods;
     }
 
-    private function methodRequiresParamsFile(\ReflectionMethod $method)
-    {
-        $proceed = false;
-
-        foreach ($method->getParameters() as $param) {
-            if ($param->getName() == 'options') {
-                $proceed = true;
-            }
-        }
-
-        return $proceed;
-    }
-
     private function invokeWriterFactory($type, $file, \ReflectionMethod $method)
     {
         $writer = $this->writerFactory->create($type, $file, $method);
         $writer->write();
     }
 
+    private function createSignature($name, \ReflectionMethod $method)
+    {
+        $this->invokeWriterFactory('Signature', "{$name}.signature.rst", $method);
+    }
+
+    private function createCodeSample($name, \ReflectionMethod $method)
+    {
+        $this->invokeWriterFactory('CodeSample', "{$name}.sample.rst", $method);
+    }
+
+    private function createParamsTable($name, \ReflectionMethod $method)
+    {
+        foreach ($method->getParameters() as $param) {
+            if ($param->getName() == 'options') {
+                $this->invokeWriterFactory('ParamsTable', "{$name}.params.rst", $method);
+                break;
+            }
+        }
+    }
+
+    public function buildDocs()
+    {
+        $this->createDocDirectory();
+
+        foreach ($this->getServiceMethods() as $name => $method) {
+            $this->createSignature($name, $method);
+            $this->createCodeSample($name, $method);
+            $this->createParamsTable($name, $method);
+        }
+    }
+
     public function createSignatureFiles()
     {
         foreach ($this->getServiceMethods() as $name => $method) {
-            $this->invokeWriterFactory('Signature', "{$name}.signature.rst", $method);
+            $this->createSignature($name, $method);
         }
     }
 
     public function createCodeSampleFiles()
     {
         foreach ($this->getServiceMethods() as $name => $method) {
-            $this->invokeWriterFactory('CodeSample', "{$name}.sample.rst", $method);
+            $this->createCodeSample($name, $method);
         }
     }
 
     public function createParamsTableFiles()
     {
         foreach ($this->getServiceMethods() as $name => $method) {
-            if ($this->methodRequiresParamsFile($method)) {
-                $this->invokeWriterFactory('ParamsTable', "{$name}.params.rst", $method);
-            }
+            $this->createParamsTable($name, $method);
         }
     }
 }

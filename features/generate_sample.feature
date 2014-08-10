@@ -4,9 +4,11 @@ Feature: Generating sample code
   I need to generate sample code from service definitions
 
   Background:
-    Given a PHP file contains:
-    """
+    Given the service is named FooService
+    And a PHP file contains:
+      """
       <?php
+      namespace OpenStack\FooService\v2;
 
       class Service
       {
@@ -73,7 +75,7 @@ Feature: Generating sample code
 
     Scenario: Generating code samples for a normal command
       When I generate code samples for this service
-      Then the output should be:
+      Then fooAction.sample.rst should contain:
         """
         $name = '{string}';
         $date = '{string}';
@@ -90,7 +92,7 @@ Feature: Generating sample code
 
     Scenario: Generating code samples for an iterator
       When I generate code samples for this service
-      Then the output should be:
+      Then fooAction.sample.rst should contain:
         """
         $metadata = [];
 

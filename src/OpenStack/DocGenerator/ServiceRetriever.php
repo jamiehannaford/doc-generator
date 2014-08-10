@@ -4,15 +4,14 @@ namespace OpenStack\DocGenerator;
 
 class ServiceRetriever
 {
+    use HasFileHelpersTrait;
+
     private $sourcePath;
 
     public function __construct($sourcePath)
     {
+        $this->validatePath($sourcePath);
         $this->sourcePath = $sourcePath;
-
-        if (!file_exists($this->sourcePath)) {
-            throw new \RuntimeException(sprintf('%s does not exist', $this->sourcePath));
-        }
     }
 
     public function retrieve()
@@ -30,7 +29,7 @@ class ServiceRetriever
                 $class = sprintf("OpenStack\\%s\\%s\\Service", $service, $version);
                 if (class_exists($class)) {
                     $services[] = [
-                        'docPath'   => $this->getDocPath($service, $version),
+                        'docPath'   => self::getDocPath($service, $version),
                         'namespace' => $class,
                         'descPath'  => $this->getDescPath($service, $version)
                     ];
@@ -52,13 +51,9 @@ class ServiceRetriever
         return $service . DIRECTORY_SEPARATOR . $version . DIRECTORY_SEPARATOR . 'Description';
     }
 
-    private function getDocPath($service, $version)
+    public static function getDocPath($service, $version)
     {
-        return $this->getHyphenatedServiceName($service) . '-' . $version;
-    }
-
-    private function getHyphenatedServiceName($service)
-    {
-        return strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $service));
+        $dir = strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $service));
+        return $dir . '-' . $version;
     }
 }
