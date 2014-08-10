@@ -17,13 +17,14 @@ class ServiceGenerator
 
     public function __construct($namespace, $docPath, $descPath)
     {
-        $this->validate($namespace, $docPath, $descPath);
+        $this->filesystem = new Filesystem();
+        $this->writerFactory = new WriterFactory($namespace, $docPath, $descPath);
 
         $this->namespace = $namespace;
         $this->docPath   = $this->trim($docPath);
 
-        $this->filesystem    = new Filesystem();
-        $this->writerFactory = new WriterFactory($namespace, $docPath, $descPath);
+        $this->createDocDirectory();
+        $this->validate($namespace, $docPath, $descPath);
     }
 
     public function setFilesystem(Filesystem $filesystem)
@@ -38,18 +39,23 @@ class ServiceGenerator
 
     public function createDocDirectory()
     {
-        $this->filesystem->mkdir($this->docPath . '_generated');
+        $path = $this->docPath . '_generated';
+
+        if (file_exists($path)) {
+            $this->filesystem->remove($path);
+        }
+
+        $this->filesystem->mkdir($path);
     }
 
     private function getServiceMethods()
     {
         if (null === $this->serviceMethods) {
             $reflection = new \ReflectionClass($this->namespace);
-            foreach ($reflection->getMethods() as $method) {
-                if ($method->getDeclaringClass()->isAbstract() || !$method->isPublic()) {
+            foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+                if ($method->getDeclaringClass()->isAbstract()) {
                     continue;
                 }
-
                 $this->serviceMethods[$method->getName()] = $method;
             }
         }
@@ -83,35 +89,42 @@ class ServiceGenerator
         }
     }
 
+    private function walkServices(callable $fn)
+    {
+        if (!($methods = $this->getServiceMethods())) {
+            return;
+        }
+
+        array_walk($methods, $fn);
+    }
+
     public function buildDocs()
     {
-        $this->createDocDirectory();
-
-        foreach ($this->getServiceMethods() as $name => $method) {
+        $this->walkServices(function ($method, $name) {
             $this->createSignature($name, $method);
             $this->createCodeSample($name, $method);
             $this->createParamsTable($name, $method);
-        }
+        });
     }
 
     public function createSignatureFiles()
     {
-        foreach ($this->getServiceMethods() as $name => $method) {
+        $this->walkServices(function ($method, $name) {
             $this->createSignature($name, $method);
-        }
+        });
     }
 
     public function createCodeSampleFiles()
     {
-        foreach ($this->getServiceMethods() as $name => $method) {
+        $this->walkServices(function ($method, $name) {
             $this->createCodeSample($name, $method);
-        }
+        });
     }
 
     public function createParamsTableFiles()
     {
-        foreach ($this->getServiceMethods() as $name => $method) {
+        $this->walkServices(function ($method, $name) {
             $this->createParamsTable($name, $method);
-        }
+        });
     }
 }

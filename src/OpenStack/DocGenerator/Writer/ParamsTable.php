@@ -25,11 +25,9 @@ class ParamsTable extends AbstractWriter
     {
         $content = $this->writeTitles();
 
-        $operationName = $this->getDocBlock()
-            ->getParamTag('options')
-            ->getOperationName();
+        $opParam = $this->getDocBlock()->getParamTag('options');
 
-        if ($operationName) {
+        if ($opParam && $operationName = $opParam->getOperationName()) {
             $operation = $this->description->getOperation($operationName);
         }
 

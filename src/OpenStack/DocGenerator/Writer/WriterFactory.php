@@ -25,7 +25,7 @@ class WriterFactory
         Parser $parser = null,
         Filesystem $filesystem = null
     ) {
-        $this->validate($namespace, $docPath, $descPath);
+        //$this->validate($namespace, $docPath, $descPath);
 
         $this->namespace = $namespace;
         $this->docPath   = $this->trim($docPath);
@@ -54,8 +54,8 @@ class WriterFactory
         $this->validatePath($serviceFile);
 
         $data = [];
-        $this->parseYamlPath($serviceFile, $data);
         $this->parseYamlPath($paramsFile, $data);
+        $this->parseYamlPath($serviceFile, $data);
 
         return new ServiceDescription($data);
     }
