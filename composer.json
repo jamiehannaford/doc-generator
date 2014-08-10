@@ -13,5 +13,10 @@
         "psr-4": {
             "OpenStack\\DocGenerator\\": "src/OpenStack/DocGenerator/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "features\\OpenStack\\DocGenerator\\": "features/bootstrap/"
+        }
     }
 }
